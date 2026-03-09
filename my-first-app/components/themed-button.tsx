@@ -14,8 +14,8 @@ export function ThemedButton({ lightColor ,darkColor, lightBackground, darkBackg
     const color = useThemeColor({ light:lightColor, dark:darkColor }, "text");
     const backgroundColor = useThemeColor({ light:lightBackground, dark:darkBackground }, "background")
     return(
-        <Animated.View entering={FadeInUp.delay(animationDealy).duration(800).springify()} style={styles.view}>
-            <TouchableOpacity style={[styles.button,{backgroundColor},style]}>
+        <Animated.View entering={FadeInDown.delay(animationDealy).duration(800).springify()} style={styles.view}>
+            <TouchableOpacity style={[styles.button,{backgroundColor},style]} {...rest}>
             <Text style={[styles.textButton,{color},textStyle]}>{textValue}</Text>
         </TouchableOpacity>
         </Animated.View>

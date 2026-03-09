@@ -8,6 +8,7 @@ export default function ModalScreen() {
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title">This is a modal</ThemedText>
+      {/* <Link href="/(auth)/login" dismissTo style={styles.link}> */}
       <Link href="/(auth)/login" dismissTo style={styles.link}>
         <ThemedText type="link">Login</ThemedText>
       </Link>
