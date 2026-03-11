@@ -3,27 +3,26 @@ import { ThemedButton } from "@/components/themed-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedTextInput } from "@/components/themed-text-input";
 import { ThemedView } from "@/components/themed-view";
-import { Link, router } from "expo-router";
+import { Link } from "expo-router";
 import { KeyboardAvoidingView, StyleSheet } from "react-native";
-import { loginRequest } from "@/services/api";
-import { saveToken } from "@/services/auth";
-export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({ username: "", password: "" });
 
-  const handleLogin = async() => {
-    const newErrors = { username: "", password: "" };
+export default function Admin() {
+  const [matricule, setMatricule] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({ matricule: "", password: "" });
+
+  const handleLogin = () => {
+    const newErrors = { matricule: "", password: "" };
     let hasError = false;
 
-    // Username must be alphanumeric
-    const usernameRegex = /^[a-zA-Z0-9]+$/;
-    if (!usernameRegex.test(username)) {
-      newErrors.username = "Username must be alphanumeric.";
+    // Validate matricule (alphanumeric)
+    const matriculeRegex = /^[a-zA-Z0-9]+$/;
+    if (!matriculeRegex.test(matricule)) {
+      newErrors.matricule = "Registration Number must be alphanumeric.";
       hasError = true;
     }
 
-    // Password must be at least 6 characters
+    // Validate password (min 6 characters)
     if (password.length < 6) {
       newErrors.password = "Password must be at least 6 characters long.";
       hasError = true;
@@ -31,19 +30,10 @@ export default function Login() {
 
     setErrors(newErrors);
 
-    if (hasError) {
-      return;
+    if (!hasError) {
+      // Proceed with login logic here
+      console.log("Login successful:", { matricule, password });
     }
-    console.log("Validation passed, attempting login...");
-    const data = await loginRequest(username,password);
-    if(data==null){
-      console.log("Login failed: No data returned");
-      return;
-    }
-    await saveToken(data.access_token);
-    console.log("Login successful, token saved.");
-    router.push("/");
-
   };
 
   return (
@@ -58,20 +48,20 @@ export default function Login() {
         </ThemedText>
 
         <ThemedTextInput
-          placeholder="Username"
+          placeholder="Registration Number"
           darkColor="white"
           lightColor="black"
           darkBackground="#3f3f3f54"
           lightBackground="#ffffff"
           animationDealy={200}
-          value={username}
+          value={matricule}
           onChangeText={(text) => {
-            setUsername(text);
-            setErrors((prev) => ({ ...prev, username: "" }));
+            setMatricule(text);
+            setErrors((prev) => ({ ...prev, matricule: "" }));
           }}
         />
-        {errors.username ? (
-          <ThemedText style={styles.errorText}>{errors.username}</ThemedText>
+        {errors.matricule ? (
+          <ThemedText style={styles.errorText}>{errors.matricule}</ThemedText>
         ) : null}
 
         <ThemedTextInput

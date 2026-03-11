@@ -7,10 +7,13 @@ import { ThemedView } from '@/components/themed-view';
 export default function ModalScreen() {
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">This is a modal</ThemedText>
+      <ThemedText type="title">Welcome to FTUSA</ThemedText>
       {/* <Link href="/(auth)/login" dismissTo style={styles.link}> */}
       <Link href="/(auth)/login" dismissTo style={styles.link}>
-        <ThemedText type="link">Login</ThemedText>
+        <ThemedText type="link">User Login</ThemedText>
+      </Link>
+      <Link href="/(auth)/agent" dismissTo style={styles.link}>
+        <ThemedText type="link">Agent Login</ThemedText>
       </Link>
     </ThemedView>
   );
