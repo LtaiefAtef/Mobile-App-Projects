@@ -43,3 +43,15 @@ export async function signupRequest({ prename, familyName, username, phoneNumber
   if (!res.ok) throw new Error("Signup failed");
   return res.json();
 };
+
+export async function resendVerification(username:string){
+  await fetch(`${API_URL}/auth/resend-verification?username=${username}`,{
+    method:"POST"
+  }
+  )
+}
+export async function isVerified(username: string): Promise<boolean> {
+    const res = await fetch(`${API_URL}/auth/is-verified?username=${username}`);
+    if (!res.ok) return false;
+    return res.json();
+}

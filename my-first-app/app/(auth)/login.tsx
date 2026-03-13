@@ -43,7 +43,6 @@ export default function Login() {
     await saveToken(data.access_token);
     console.log("Login successful, token saved.");
     router.push("/");
-
   };
 
   return (

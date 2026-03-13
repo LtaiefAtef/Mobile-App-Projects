@@ -1,0 +1,72 @@
+
+==============================
+ Sign Up Error
+ Date: 2026-03-12 00:45:46
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 500 Internal Server Error on PUT request for "http://localhost:8080/admin/realms/mobile-realm/users/0c823c1d-cd0f-4798-b9f0-b615727cc8bc/send-verify-email": "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-12 00:57:40
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 409 Conflict on POST request for "http://localhost:8080/admin/realms/mobile-realm/users": "{"errorMessage":"User exists with same email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-12 00:59:06
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 500 Internal Server Error on PUT request for "http://localhost:8080/admin/realms/mobile-realm/users/ebd2c4ca-fd8f-4498-9327-025c17a4717a/send-verify-email": "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-12 01:01:11
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 500 Internal Server Error on PUT request for "http://localhost:8080/admin/realms/mobile-realm/users/308131b1-b5e6-4713-b55f-d605c615dd1e/send-verify-email": "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-12 01:02:31
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 500 Internal Server Error on PUT request for "http://localhost:8080/admin/realms/mobile-realm/users/557879ac-f665-4582-95da-e66c7e1dcd00/send-verify-email": "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-12 01:03:49
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 500 Internal Server Error on PUT request for "http://localhost:8080/admin/realms/mobile-realm/users/157551fa-1ed8-4544-82b4-15bdbb45d4ae/send-verify-email": "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-12 01:05:23
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 500 Internal Server Error on PUT request for "http://localhost:8080/admin/realms/mobile-realm/users/037379e5-bb41-4418-8639-347f1f519ac8/send-verify-email": "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-12 01:06:07
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 500 Internal Server Error on PUT request for "http://localhost:8080/admin/realms/mobile-realm/users/78b13b02-5127-4d84-87bf-af8e3f7bcd02/send-verify-email": "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-12 01:39:55
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 409 Conflict on POST request for "http://localhost:8080/admin/realms/mobile-realm/users": "{"errorMessage":"User exists with same email"}"
+------------------------------>

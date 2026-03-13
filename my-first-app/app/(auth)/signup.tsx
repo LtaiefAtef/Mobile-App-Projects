@@ -65,7 +65,7 @@ export default function Signup() {
       console.log("ERROR")
       return;
     }
-    router.replace("/(auth)/login");
+    router.replace(`/(auth)/verify-email?username=${username}&password=${password}`);
   };
 
   return (

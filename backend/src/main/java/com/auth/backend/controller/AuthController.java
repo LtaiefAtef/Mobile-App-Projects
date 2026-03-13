@@ -1,8 +1,11 @@
 package com.auth.backend.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.auth.backend.dto.LoginRequest;
@@ -27,5 +30,15 @@ public class AuthController {
     public boolean signup(@RequestBody SignupRequest request){
         System.out.println("Received signup request: " + request);
         return authService.signup(request);
+    }
+    @PostMapping("/resend-verification")
+    public void resend(@RequestParam String username){
+        System.out.println("Received resend verification request for username: " + username);
+        authService.resendVerification(username);
+    }
+    @GetMapping("/is-verified")
+    public ResponseEntity<Boolean> isVerified(@RequestParam String username) {
+        System.out.println("Received is-verified request for username: " + username);
+        return ResponseEntity.ok(authService.isEmailVerified(username));
     }
 }
