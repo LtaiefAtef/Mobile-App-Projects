@@ -1,5 +1,5 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { StyleProp, StyleSheet, Text, type TextStyle, TouchableOpacity, type TouchableOpacityProps, View } from "react-native";
+import { StyleProp, StyleSheet, Text, type TextStyle, TouchableOpacity, type TouchableOpacityProps, View, ViewStyle } from "react-native";
 import Animated,{FadeInDown, FadeInUp} from "react-native-reanimated";
 export type ThemedButtonProps = TouchableOpacityProps & {
     lightColor?:string;
@@ -8,13 +8,14 @@ export type ThemedButtonProps = TouchableOpacityProps & {
     darkBackground?:string;
     textValue?:string;
     textStyle?:StyleProp<TextStyle>;
+    ViewStyle?:StyleProp<ViewStyle>;
     animationDealy?:number;
 }
-export function ThemedButton({ lightColor ,darkColor, lightBackground, darkBackground ,style, textStyle,textValue ,animationDealy=200,...rest }:ThemedButtonProps){
+export function ThemedButton({ lightColor ,darkColor, lightBackground, darkBackground ,style, textStyle,ViewStyle,textValue ,animationDealy=200,...rest }:ThemedButtonProps){
     const color = useThemeColor({ light:lightColor, dark:darkColor }, "text");
     const backgroundColor = useThemeColor({ light:lightBackground, dark:darkBackground }, "background")
     return(
-        <Animated.View entering={FadeInDown.delay(animationDealy).duration(800).springify()} style={styles.view}>
+        <Animated.View entering={FadeInDown.delay(animationDealy).duration(800).springify()} style={[styles.view, ViewStyle]}>
             <TouchableOpacity style={[styles.button,{backgroundColor},style]} {...rest}>
             <Text style={[styles.textButton,{color},textStyle]}>{textValue}</Text>
         </TouchableOpacity>

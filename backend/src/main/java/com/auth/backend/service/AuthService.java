@@ -115,7 +115,7 @@ public class AuthService {
         Map tokenRes = rest.postForObject(adminTokenUrl, entity, Map.class);
         String accessToken = (String) tokenRes.get("access_token");
         HttpHeaders authHeaders = new HttpHeaders();
-        authHeaders.setBearerAuth(accessToken);
+        authHeaders.setBearerAuth(accessToken);     
         // find user by username
         String findUrl = "http://localhost:8080/admin/realms/mobile-realm/users?username=" + username;
         HttpEntity<Void> findEntity = new HttpEntity<>(authHeaders);

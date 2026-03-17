@@ -19,7 +19,8 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ headerShown:false }} />
         <Stack.Screen name="(auth)/login" options={{ headerShown: false }}/>
         <Stack.Screen name="(auth)/signup" options={{ headerShown: false }}/>
-        <Stack.Screen name="(auth)/verify-email" options={{ headerShown: false }}/>
+        <Stack.Screen name="(auth)/verify-email" options={{headerShown: false }}/>
+        <Stack.Screen name="(accident_report)/claim-form" options={{ title: "Claim Form" }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

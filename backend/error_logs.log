@@ -70,3 +70,83 @@
  Location : backend/src/main/java/com/auth/backend/service/AuthService.java
  Error    : 409 Conflict on POST request for "http://localhost:8080/admin/realms/mobile-realm/users": "{"errorMessage":"User exists with same email"}"
 ------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-03-17 12:58:35
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-17 13:07:15
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-17 13:24:19
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : Access denied: not an admin
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-17 19:06:45
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-17 19:08:22
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-17 19:09:48
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-17 19:10:55
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : Access denied: not an admin
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-17 19:13:06
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : Access denied: not an admin
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-17 19:14:01
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-17 19:17:59
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : Access denied: not an admin
+------------------------------>

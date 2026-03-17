@@ -23,6 +23,8 @@ const styles = StyleSheet.create({
         fontSize:12,
         padding:15,
         borderRadius:20,
-        marginBlock:10
+        marginBlock:10,
+        borderBottomColor:"gray",
+        borderBottomWidth:1,
     }
 })

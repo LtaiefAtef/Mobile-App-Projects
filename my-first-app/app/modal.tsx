@@ -12,7 +12,7 @@ export default function ModalScreen() {
       <Link href="/(auth)/login" dismissTo style={styles.link}>
         <ThemedText type="link">User Login</ThemedText>
       </Link>
-      <Link href="/(auth)/agent" dismissTo style={styles.link}>
+      <Link href="/(accident_report)/claim-form" dismissTo style={styles.link}>
         <ThemedText type="link">Agent Login</ThemedText>
       </Link>
     </ThemedView>
