@@ -1,20 +1,11 @@
 import api from "./axios";
 
-export const getUsers = async () => {
-  const res = await api.get("/users");
+export const getUsers = async (search?: string) => {
+  const res = await api.get("/api/users", { params: search ? { search } : {} });
   return res.data;
 };
 
-export const createUser = async (user: any) => {
-  const res = await api.post("/users", user);
+export const getUserById = async (id: string) => {
+  const res = await api.get(`/api/users/${id}`);
   return res.data;
-};
-
-export const updateUser = async (id: string, user: any) => {
-  const res = await api.put(`/users/${id}`, user);
-  return res.data;
-};
-
-export const deleteUser = async (id: string) => {
-  return api.delete(`/users/${id}`);
 };

@@ -1,16 +1,11 @@
 import api from "./axios";
 
-export const getClaims = async () => {
-  const res = await api.get("/claims");
+export const getClaimsByUser = async (userId: string) => {
+  const res = await api.get(`/api/users/${userId}/claims`);
   return res.data;
 };
 
-export const createClaim = async (claim: any) => {
-  const res = await api.post("/claims", claim);
-  return res.data;
-};
-
-export const updateClaimStatus = async (id: string, status: string) => {
-  const res = await api.put(`/claims/${id}/status`, { status });
+export const updateClaimStatus = async (claimId: string, status: string) => {
+  const res = await api.patch(`/api/users/claims/${claimId}/status`, { status });
   return res.data;
 };

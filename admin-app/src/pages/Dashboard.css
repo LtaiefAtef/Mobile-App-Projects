@@ -1,0 +1,134 @@
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --border: #2a2d3e;
+  --accent: #4f8ef7;
+  --text: #e8eaf0;
+  --text-muted: #7b7f96;
+  --danger: #e05c5c;
+  --success: #4caf7d;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.dashboard {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.dashboard-header h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.dashboard-content {
+  padding: 32px 40px;
+}
+
+.search-bar input {
+  width: 100%;
+  max-width: 420px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+  margin-bottom: 24px;
+  transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+  border-color: var(--accent);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.users-table thead {
+  background: #13161f;
+}
+
+.users-table th {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.users-table td {
+  padding: 14px 18px;
+  font-size: 0.88rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.users-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.users-table tbody tr:hover {
+  background: #1f2235;
+}
+
+.view-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: opacity 0.2s;
+}
+
+.view-btn:hover { opacity: 0.85; }
+
+.no-data {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32px !important;
+}
+
+.loading {
+  color: var(--text-muted);
+  padding: 24px 0;
+}

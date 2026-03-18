@@ -150,3 +150,35 @@
  Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
  Error    : Access denied: not an admin
 ------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-17 21:40:53
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 409 Conflict on POST request for "http://localhost:8080/admin/realms/mobile-realm/users": "{"errorMessage":"User exists with same username"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-17 22:01:58
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 409 Conflict on POST request for "http://localhost:8080/admin/realms/mobile-realm/users": "{"errorMessage":"User exists with same email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-17 22:14:19
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 409 Conflict on POST request for "http://localhost:8080/admin/realms/mobile-realm/users": "{"errorMessage":"User exists with same email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-03-17 22:40:07
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 409 Conflict on POST request for "http://localhost:8080/admin/realms/mobile-realm/users": "{"errorMessage":"User exists with same email"}"
+------------------------------>
