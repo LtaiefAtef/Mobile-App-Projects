@@ -1,6 +1,7 @@
 package com.auth.backend.controller;
 
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,10 +13,9 @@ import com.auth.backend.dto.AdminLoginRequest;
 import com.auth.backend.dto.LoginRequest;
 import com.auth.backend.dto.SignupRequest;
 import com.auth.backend.dto.TokenResponse;
+
 import com.auth.backend.service.AdminAuthService;
 import com.auth.backend.service.AuthService;
-
-import ch.qos.logback.core.subst.Token;
 
 @RestController
 @RequestMapping("/auth")

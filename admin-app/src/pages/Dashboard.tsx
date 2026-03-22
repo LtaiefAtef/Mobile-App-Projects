@@ -8,6 +8,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const filtered = [];
 
   const fetchUsers = async (keyword?: string) => {
     try {
@@ -31,67 +32,29 @@ export default function Dashboard() {
     fetchUsers(val || undefined);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
-
   return (
     <div className="dashboard">
-      <header className="dashboard-header">
-        <h1>Admin Dashboard</h1>
-        <button className="logout-btn" onClick={handleLogout}>Logout</button>
-      </header>
-
-      <div className="dashboard-content">
-        <div className="search-bar">
-          <input
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={handleSearch}
-          />
+        {/* Dashboard header */}
+        <div className="dashboard-header">
+            <div>
+              <h1 className="dashboard-title">Dashboard</h1>
+              <p className="dashboard-subtitle">Overall view of the application</p>
+            </div>
         </div>
-
-        {loading ? (
-          <p className="loading">Loading...</p>
-        ) : (
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>Employee ID</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length === 0 ? (
-                <tr><td colSpan={6} className="no-data">No users found</td></tr>
-              ) : (
-                users.map((user) => (
-                  <tr key={user.id}>
-                    <td>{user.employeeId}</td>
-                    <td>{user.firstName}</td>
-                    <td>{user.lastName}</td>
-                    <td>{user.email}</td>
-                    <td>{user.phone}</td>
-                    <td>
-                      <button
-                        className="view-btn"
-                        onClick={() => navigate(`/users/${user.id}`)}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+        {/* Dashboard Search */}
+        {/* <div className="dashboard-body">
+            <div className="dashboard-search-wrap">
+              <svg className="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                className="dashboard-search"
+                placeholder="Rechercher client ou contrat..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+        </div> */}
     </div>
   );
 }

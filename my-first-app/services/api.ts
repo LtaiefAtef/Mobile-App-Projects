@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { getToken } from "./auth";
 
 const { debuggerHost } = Constants.expoConfig?.hostUri 
   ? { debuggerHost: Constants.expoConfig.hostUri.split(":")[0] }
@@ -54,4 +55,23 @@ export async function isVerified(username: string): Promise<boolean> {
     const res = await fetch(`${API_URL}/auth/is-verified?username=${username}`);
     if (!res.ok) return false;
     return res.json();
+}
+
+export async function getUserInfo(token: string) {
+    const res = await fetch(`${API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Failed to fetch user info");
+    return res.json();
+}
+
+export async function getUserContract(contractNumber:string|undefined) {
+  const token = await getToken();
+  console.log(token);
+  console.log("THIS IS USER TOKEN TO GET CONTRACT API.TS LINE 70 ");
+  const res = await fetch(`${API_URL}/users/${contractNumber}/contracts`,{
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if(!res.ok) throw new Error(`Error getting user contract: headers :${JSON.stringify(res.headers)}`)
+  return res.json();
 }

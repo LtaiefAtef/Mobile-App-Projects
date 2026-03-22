@@ -41,18 +41,18 @@ public class UserService {
 
     // ── Contracts ──────────────────────────────────────────────
 
-    public List<Contract> getContractsByUser(String userId) {
-        return contractRepository.findByUserId(userId);
+    public List<Contract> getContractByClientLicense(String clientLicense) {
+        return contractRepository.findByDrivingLicenseNumber(clientLicense);
     }
-
-    public Contract updateContract(String contractId, Contract updates) {
-        Contract existing = contractRepository.findById(contractId)
-                .orElseThrow(() -> new RuntimeException("Contract not found: " + contractId));
-        existing.setStatus(updates.getStatus());
-        existing.setPremium(updates.getPremium());
-        existing.setEndDate(updates.getEndDate());
-        return contractRepository.save(existing);
+    public List<Contract> getAllContracts() {
+        return contractRepository.findAll();
     }
+    // public Contract updateContractStatus(String contractId, String status) {
+    //     Contract existing = contractRepository.findById(contractId)
+    //             .orElseThrow(() -> new RuntimeException("Contract not found: " + contractId));
+    //     existing.setStatus(status);
+    //     return contractRepository.save(existing);
+    // }
 
     // ── Claims ─────────────────────────────────────────────────
 

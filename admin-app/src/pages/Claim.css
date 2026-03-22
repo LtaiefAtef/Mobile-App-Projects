@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Syne:wght@700&display=swap');
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --border: #2a2d3e;
+  --accent: #4f8ef7;
+  --text: #e8eaf0;
+  --text-muted: #7b7f96;
+  --danger: #e05c5c;
+  --success: #4caf7d;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+
+.claims {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+}
+/* Header */
+.claims-header {
+    padding: 32px 40px 24px;
+    border-bottom: 1px solid var(--border);
+}   
+.claims-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+}
+.claims-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}

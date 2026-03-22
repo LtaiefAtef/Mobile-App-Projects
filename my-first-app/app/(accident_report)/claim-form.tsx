@@ -7,9 +7,11 @@ import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ThemedButton } from '@/components/themed-button';
+import { getUserContract } from '@/services/api';
 export default function App() {
   const [selectedInsurance, setSelectedInsurance] = useState<string|undefined>(undefined);
   const [selectedPlateType, setSelectedPlateType] = useState<string|undefined>(undefined);
+  const [contractNumber, setContractNumber] = useState<string|undefined>(undefined);
   const [dateFrame, setDateFrame] = useState<boolean>(false);
   const [date, setDate] = useState(new Date());
 
@@ -19,6 +21,12 @@ export default function App() {
     setDate(currentDate);
     setDateFrame(false);
   };
+  // Getting user contract by number
+  async function getContarct() {
+    console.log("Getting user contract, Contract Number: "+ contractNumber);
+    const userContract = await getUserContract(contractNumber);
+    console.log("User contract claim-form.tsx line 28",userContract);
+  }
   return (
     <ThemedView style={styles.container}>
       <ThemedText style={styles.label} darkColor='white' lightColor='black'>Search Vehicle</ThemedText>
@@ -30,7 +38,7 @@ export default function App() {
               }}
           />
       {selectedInsurance && <ThemedView>
-          <ThemedTextInput darkColor='white' lightColor='black' placeholder='Policy Number'/>
+          <ThemedTextInput darkColor='white' lightColor='black' placeholder='Policy Number' onChangeText={setContractNumber}/>
           <ThemedText style={{margin:20, fontSize:16}}>Vehicle Registration Number</ThemedText>
           <ThemedView style={{display:"flex", flexDirection:"row", justifyContent:"space-between", width:"35%"}}>
             <ThemedTextInput darkColor='white' lightColor='black' placeholder=''/>
@@ -60,7 +68,7 @@ export default function App() {
             darkBackground="white" 
             lightBackground="black"
             ViewStyle={{marginTop:30, width:"100%"}}
-            onPress={() => {}} 
+            onPress={() => {getContarct()}} 
           />
         </ThemedView>}
     </ThemedView>

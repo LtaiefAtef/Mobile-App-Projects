@@ -182,3 +182,19 @@
  Location : backend/src/main/java/com/auth/backend/service/AuthService.java
  Error    : 409 Conflict on POST request for "http://localhost:8080/admin/realms/mobile-realm/users": "{"errorMessage":"User exists with same email"}"
 ------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-22 13:19:48
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : I/O error on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": Connection refused: connect
+------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-22 13:20:41
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : I/O error on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": An established connection was aborted by the software in your host machine
+------------------------------>

@@ -28,26 +28,24 @@ public class UserController {
         }
         return ResponseEntity.ok(userService.getAllUsers());
     }
-
     // GET /api/users/{id}
     @GetMapping("/{id}")
     public ResponseEntity<User> getUser(@PathVariable String id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
-
+    // GET /api/users/contracts
+    @GetMapping("/contracts")
+    public ResponseEntity<List<Contract>> getAllContracts() {
+        System.out.println("Received request to get all contracts");
+        return ResponseEntity.ok(userService.getAllContracts());
+    }
     // GET /api/users/{id}/contracts
     @GetMapping("/{id}/contracts")
-    public ResponseEntity<List<Contract>> getUserContracts(@PathVariable String id) {
-        return ResponseEntity.ok(userService.getContractsByUser(id));
+    public ResponseEntity<List<Contract>> getUserContract(@PathVariable String id) {
+        System.out.println("Received request to get all contracts + id= " + id);
+        return ResponseEntity.ok(userService.getContractByClientLicense(id));
     }
 
-    // PATCH /api/users/contracts/{contractId}
-    @PatchMapping("/contracts/{contractId}")
-    public ResponseEntity<Contract> updateContract(
-            @PathVariable String contractId,
-            @RequestBody Contract updates) {
-        return ResponseEntity.ok(userService.updateContract(contractId, updates));
-    }
 
     // GET /api/users/{id}/claims
     @GetMapping("/{id}/claims")
