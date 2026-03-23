@@ -10,6 +10,7 @@ import java.util.List;
 public interface ContractRepository extends MongoRepository<Contract, String> {
 
     List<Contract> findByDrivingLicenseNumber(String drivingLicenseNumber);
+    List<Contract> findByContractNumber(String contractNumber);
     // List<Contract> findContractByDrivingLicenseNumber(String drivingLicenseNumber); --- IGNORE ---
     List<Contract> findAll();
 }

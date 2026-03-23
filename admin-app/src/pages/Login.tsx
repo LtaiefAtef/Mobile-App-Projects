@@ -26,7 +26,7 @@ export default function Login() {
       setErrors({}); // clear previous errors
 
       const data = await adminLogin(employeeId, password);
-      localStorage.setItem("token", data.access_token);
+      console.log("ADMIN LOGIN RESULT ", data);
       window.location.href = "/";
     } catch (error) {
       setErrors({ general: "Invalid employeeId or password" });

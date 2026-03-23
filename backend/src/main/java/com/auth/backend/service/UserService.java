@@ -41,8 +41,8 @@ public class UserService {
 
     // ── Contracts ──────────────────────────────────────────────
 
-    public List<Contract> getContractByClientLicense(String clientLicense) {
-        return contractRepository.findByDrivingLicenseNumber(clientLicense);
+    public List<Contract> getClientContract(String contractNumber) {
+        return contractRepository.findByContractNumber(contractNumber);
     }
     public List<Contract> getAllContracts() {
         return contractRepository.findAll();

@@ -179,4 +179,21 @@ public class AuthService {
         System.out.println("User found: " + user);
         return (Boolean) user.get("emailVerified");
     }
+    // Refresh Token Service
+    public TokenResponse refreshToken(String refreshToken) {
+        try {
+            RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("grant_type", "refresh_token");
+            body.add("client_id", CLIENT_ID);
+            body.add("refresh_token", refreshToken);
+            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
+            return rest.postForObject(KEYCLOAK_TOKEN_URL, entity, TokenResponse.class);
+        } catch (Exception e) {
+            BackendLogger.logError("Refresh Error", "AuthService.java", e);
+            return null;
+        }
+    }
 }

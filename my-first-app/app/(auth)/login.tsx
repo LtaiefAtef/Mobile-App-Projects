@@ -40,8 +40,8 @@ export default function Login() {
       console.log("Login failed: No data returned");
       return;
     }
-    await saveToken(data.access_token);
-    console.log("Login successful, token saved.");
+    await saveToken(data.access_token, data.refresh_token, data.expires_in);
+    console.log("Login successful, token saved. DATA : ", data);
     router.push("/");
   };
 

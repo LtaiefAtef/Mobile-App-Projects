@@ -39,25 +39,14 @@ public class UserController {
         System.out.println("Received request to get all contracts");
         return ResponseEntity.ok(userService.getAllContracts());
     }
-    // GET /api/users/{id}/contracts
-    @GetMapping("/{id}/contracts")
-    public ResponseEntity<List<Contract>> getUserContract(@PathVariable String id) {
-        System.out.println("Received request to get all contracts + id= " + id);
-        return ResponseEntity.ok(userService.getContractByClientLicense(id));
+    @PostMapping("/contracts")
+    public ResponseEntity<List<Contract>> getUserContract(@RequestBody Map<String,String> contractInfo) {
+        System.out.println("Received request to get all contracts + id= " + contractInfo.get("contractNumber"));
+        return ResponseEntity.ok(userService.getClientContract(contractInfo.get("contractNumber")));
     }
-
-
     // GET /api/users/{id}/claims
     @GetMapping("/{id}/claims")
     public ResponseEntity<List<Claim>> getUserClaims(@PathVariable String id) {
         return ResponseEntity.ok(userService.getClaimsByUser(id));
-    }
-
-    // PATCH /api/users/claims/{claimId}/status
-    @PatchMapping("/claims/{claimId}/status")
-    public ResponseEntity<Claim> updateClaimStatus(
-            @PathVariable String claimId,
-            @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(userService.updateClaimStatus(claimId, body.get("status")));
     }
 }

@@ -1,8 +1,11 @@
 package com.auth.backend.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,5 +56,12 @@ public class AuthController {
     public ResponseEntity<Boolean> isVerified(@RequestParam String username) {
         System.out.println("Received is-verified request for username: " + username);
         return ResponseEntity.ok(authService.isEmailVerified(username));
+    }
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refresh(@RequestBody Map<String, String> body) {
+        System.out.println("REFRESH TOKEN REQUESTED");
+        TokenResponse response = authService.refreshToken(body.get("refreshToken"));
+        if (response == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(response);
     }
 }

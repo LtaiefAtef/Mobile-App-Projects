@@ -1,28 +1,7 @@
 import { useEffect, useState } from 'react'
 import './Contract.css'
 import { getContractsByUser } from '../api/contract'
-
-interface Contract {
-  id: string
-  contractNumber: string
-  insuranceCompany: string
-  client: string
-  type: 'Auto' | 'Habitation' | 'Santé'
-  status: 'En cours' | 'Expiré' | 'Suspendu'
-  pack: string
-  paymentMethod: string
-  startDate: string
-  endDate: string
-  netPremium: string
-  fees: string
-  taxes: string
-  fg: string
-  totalPremium: string
-  brand?: string
-  registration?: string
-  marketValue?: string
-  drivingLicenseNumber?: string
-}
+import type { Contract } from '../constants/appData'
 
 const typeColors: Record<string, string> = {
   Auto: 'type-auto',
