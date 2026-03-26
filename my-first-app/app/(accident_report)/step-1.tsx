@@ -8,79 +8,16 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-na
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ThemedButton } from '@/components/themed-button';
 import { getUserContract } from '@/services/api';
-export default function App() {
+import { useRouter } from 'expo-router';
+export default function FirstStep() {
+  const router = useRouter();
   const [selectedInsurance, setSelectedInsurance] = useState<string|undefined>(undefined);
   const [selectedPlateType, setSelectedPlateType] = useState<string|undefined>(undefined);
   const [contractNumber, setContractNumber] = useState<string|undefined>(undefined);
   const [dateFrame, setDateFrame] = useState<boolean>(false);
   const [date, setDate] = useState(new Date());
-  const [loading,setLoading] = useState<boolean|null>(null)
-  const [userContract, setUserContract] = useState<Contract|null>(null);
-  function ContractInfo(){
-    return (
-    <ThemedView style={{ padding:15, width:"100%" }}>
-      <ThemedText style={{ marginBlock:10 }} type='subtitle'>Contract Info</ThemedText>
-        <ThemedView style={{margin:5}}>
-          <ThemedText>Client:</ThemedText>
-          <ThemedTextInput
-            editable={false}
-            darkColor="white"
-            lightColor="black"
-            darkBackground="#3f3f3f54"
-            lightBackground="#ffffff"
-            animationDealy={250}
-            style={{borderRadius:0}}
-            value={userContract?.client}
-          />
-          <ThemedText>Driving License:</ThemedText>
-          <ThemedTextInput
-            editable={false}
-            darkColor="white"
-            lightColor="black"
-            darkBackground="#3f3f3f54"
-            lightBackground="#ffffff"
-            style={{borderRadius:0}}
-            animationDealy={300}
-            value={userContract?.drivingLicenseNumber}
-          />
-          <ThemedText>Vehicle Registration Number:</ThemedText>
-          <ThemedTextInput
-            editable={false}
-            darkColor="white"
-            lightColor="black"
-            style={{borderRadius:0}}
-            darkBackground="#3f3f3f54"
-            lightBackground="#ffffff"
-            animationDealy={300}
-            value={userContract?.registration}
-          />
-        </ThemedView>
-        <ThemedText>Insurance Company</ThemedText>
-          <ThemedTextInput
-            editable={false}
-            darkColor="white"
-            lightColor="black"
-            darkBackground="#3f3f3f54"
-            style={{borderRadius:0}}
-            lightBackground="#ffffff"
-            animationDealy={300}
-            value={userContract?.insuranceCompany}
-          />
-        <ThemedText>Car Brand</ThemedText>
-          <ThemedTextInput
-            editable={false}
-            darkColor="white"
-            lightColor="black"
-            darkBackground="#3f3f3f54"
-            lightBackground="#ffffff"
-            style={{borderRadius:0}}
-            animationDealy={300}
-            value={userContract?.brand}
-          />
-        <ThemedButton style={{marginBlock:15}} textValue='Submit Claim' darkBackground='white' lightBackground='black' darkColor='black' lightColor='white' onPress={()=>{}}/>
-    </ThemedView>
-    );
-  }
+  const [submitButton, setSubmitButton] = useState("Next");
+
   const changeDate = (event: any, selectedDate?: Date | null) => {
     console.log("Date selected:", selectedDate);
     const currentDate = selectedDate || date;
@@ -89,23 +26,23 @@ export default function App() {
   };
   // Getting user contract by number
   async function getContract() {
-    setLoading(true);
+    setSubmitButton("Loading...");
     setTimeout(async() => {
           console.log("Getting user contract, Contract Number: "+ contractNumber);
-          const userContractData = await getUserContract(contractNumber);
-          if(userContractData.length!=0){
-            setLoading(false);
-            setUserContract(userContractData[0]);
-          }
-          console.log("User contract claim-form.tsx line 28",userContract);
+          const userContract = await getUserContract(contractNumber);
+          console.log("User contract claim-form.tsx line 33",userContract);
+          setSubmitButton("Next")
+          router.push({
+            pathname:"/(accident_report)/step-2",
+            params: {contract:JSON.stringify({...userContract[0],accident_date:date})}
+          });
     }, 3000);
   }
   return (
     <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={100}
-    >
+        keyboardVerticalOffset={100}>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled">
@@ -113,7 +50,7 @@ export default function App() {
           <ThemedText style={styles.label} darkColor='white' lightColor='black'>Search Vehicle</ThemedText>
             <ThemedPicker
                   items={insuranceList}
-                  selectedValue={selectedInsurance}
+                  selectedValue={selectedInsurance} 
                   onValueChange={(value) => {
                       setSelectedInsurance(value);
                   }}
@@ -136,14 +73,14 @@ export default function App() {
                   <DateTimePicker
                     testID="dateTimePicker"
                     value={date}
-                    mode="date" // Can be 'date', 'time', or 'datetime'
+                    mode="date"
                     is24Hour={true}
                     display="default"
               onChange={changeDate}
               />}
               <ThemedText style={{margin:20}}>Accident Date</ThemedText>
               <ThemedText style={styles.text} darkColor='white' lightColor='black' onPress={()=>setDateFrame(!dateFrame)} >{date.toDateString()}</ThemedText>
-              <ThemedButton textValue="Search Vehicle" 
+              <ThemedButton textValue={submitButton}
                 darkColor='black' 
                 lightColor='white' 
                 darkBackground="white" 
@@ -152,8 +89,6 @@ export default function App() {
                 onPress={() => {getContract()}} 
               />
             </ThemedView>}
-            {loading && <ThemedView><ThemedText type='subtitle'>Loading ...</ThemedText></ThemedView>}
-            {loading == false && <ContractInfo/> }
         </ThemedView>
       </ScrollView>
     </KeyboardAvoidingView>

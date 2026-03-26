@@ -198,3 +198,11 @@
  Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
  Error    : I/O error on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": An established connection was aborted by the software in your host machine
 ------------------------------>
+
+==============================
+ Admin Login Error
+ Date: 2026-03-24 13:26:09
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
+ Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
+------------------------------>

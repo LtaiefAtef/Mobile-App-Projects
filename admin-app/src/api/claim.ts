@@ -1,11 +1,10 @@
 import api from "./axios";
 
-export const getClaimsByUser = async (userId: string) => {
-  const res = await api.get(`/api/users/${userId}/claims`);
-  return res.data;
-};
-
-export const updateClaimStatus = async (claimId: string, status: string) => {
-  const res = await api.patch(`/api/users/claims/${claimId}/status`, { status });
-  return res.data;
-};
+export async function getAllClaims() {
+  try{
+      const res = await api.get("/users/claims");
+      return res.data;
+  }catch(e){
+    throw new Error("Error getting the claims: "+ e)
+  }
+}

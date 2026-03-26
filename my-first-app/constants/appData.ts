@@ -60,4 +60,5 @@ export interface Contract {
   registration?: string
   marketValue?: string
   drivingLicenseNumber?: string
+  accident_date?: string
 }

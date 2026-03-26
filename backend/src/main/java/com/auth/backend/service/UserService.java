@@ -47,23 +47,11 @@ public class UserService {
     public List<Contract> getAllContracts() {
         return contractRepository.findAll();
     }
-    // public Contract updateContractStatus(String contractId, String status) {
-    //     Contract existing = contractRepository.findById(contractId)
-    //             .orElseThrow(() -> new RuntimeException("Contract not found: " + contractId));
-    //     existing.setStatus(status);
-    //     return contractRepository.save(existing);
-    // }
-
-    // ── Claims ─────────────────────────────────────────────────
-
-    public List<Claim> getClaimsByUser(String userId) {
-        return claimRepository.findByUserId(userId);
+    public Contract createContractForClient(Contract contract){
+        return contractRepository.save(contract);
     }
-
-    public Claim updateClaimStatus(String claimId, String status) {
-        Claim existing = claimRepository.findById(claimId)
-                .orElseThrow(() -> new RuntimeException("Claim not found: " + claimId));
-        existing.setStatus(status);
-        return claimRepository.save(existing);
+    // ── Claims ─────────────────────────────────────────────────
+    public List<Claim> findClaims(){
+        return claimRepository.findAll();
     }
 }

@@ -7,7 +7,7 @@ export default function Home(){
     const router = useRouter();
     return <ThemedView style={styles.container}>
         <ThemedText type="title">Home</ThemedText>
-        <ThemedButton textValue="Create a claim" darkBackground="#325bb3" lightBackground="#4971c7" style={{ marginBlock:40 }} onPress={() => router.push("/(accident_report)/claim-form")} />
+        <ThemedButton textValue="Create a claim" darkBackground="#325bb3" lightBackground="#4971c7" style={{ marginBlock:40 }} onPress={() => router.push("/(accident_report)/step-1")} />
     </ThemedView>
 }
 

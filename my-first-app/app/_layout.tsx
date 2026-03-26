@@ -20,7 +20,8 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)/login" options={{ headerShown: false }}/>
         <Stack.Screen name="(auth)/signup" options={{ headerShown: false }}/>
         <Stack.Screen name="(auth)/verify-email" options={{headerShown: false }}/>
-        <Stack.Screen name="(accident_report)/claim-form" options={{ title: "Claim Form" }} />
+        <Stack.Screen name="(accident_report)/step-1" options={{ title: "Step 1" }} />
+        <Stack.Screen name="(accident_report)/step-2" options={{title:"Step 2"}}/>
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

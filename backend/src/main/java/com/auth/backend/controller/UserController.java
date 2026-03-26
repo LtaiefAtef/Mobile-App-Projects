@@ -44,9 +44,15 @@ public class UserController {
         System.out.println("Received request to get all contracts + id= " + contractInfo.get("contractNumber"));
         return ResponseEntity.ok(userService.getClientContract(contractInfo.get("contractNumber")));
     }
-    // GET /api/users/{id}/claims
-    @GetMapping("/{id}/claims")
-    public ResponseEntity<List<Claim>> getUserClaims(@PathVariable String id) {
-        return ResponseEntity.ok(userService.getClaimsByUser(id));
+    @PostMapping("/contracts/create-contract")
+    public ResponseEntity<Contract> createContract(@RequestBody Contract contract){
+        System.out.println("Received request to create contract");
+        return ResponseEntity.ok(userService.createContractForClient(contract));
+    }
+    // GET users/claims
+    @GetMapping("/claims")
+    public ResponseEntity<List<Claim>> getAllClaims(){
+        System.out.println("Received Request to get all claims");
+        return ResponseEntity.ok(userService.findClaims());
     }
 }

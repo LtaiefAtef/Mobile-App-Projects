@@ -38,10 +38,6 @@ public class AuthController {
     public TokenResponse adminLogin(@RequestBody AdminLoginRequest request){
         return adminAuthService.login(request);
     }
-    @GetMapping("/admin/login")
-    public String adminLoginPage(){
-        return "Admin login page";
-    }
     @PostMapping("/signup")
     public boolean signup(@RequestBody SignupRequest request){
         System.out.println("Received signup request: " + request);

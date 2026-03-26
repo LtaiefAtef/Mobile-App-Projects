@@ -63,6 +63,14 @@ export default function Sidebar(): JSX.Element | null {
             </svg>
           Accident Claims
         </NavLink>
+        <NavLink to="/create-contract" className="sidebar-link">
+            {/* Add Icon */}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                <line x1="8" y1="2" x2="8" y2="14"/>
+                <line x1="2" y1="8" x2="14" y2="8"/>
+            </svg>
+          Create Contract
+        </NavLink>
       </div>
 
       {/* Bottom */}

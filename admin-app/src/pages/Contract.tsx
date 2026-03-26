@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './Contract.css'
-import { getContractsByUser } from '../api/contract'
+import { getAllContracts } from '../api/contract'
 import type { Contract } from '../constants/appData'
 
 const typeColors: Record<string, string> = {
@@ -16,7 +16,7 @@ export default function ContractPage() {
   useEffect(() => {
     // Simulate an API call to fetch contracts
     async function getContracts(){
-      getContractsByUser('12345678').then(data => {
+      getAllContracts().then(data => {
         console.log('Fetched contracts:', data);
         setContracts(data);
       }).catch(err => {
