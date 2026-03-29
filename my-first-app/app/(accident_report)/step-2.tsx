@@ -3,11 +3,15 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedTextInput } from "@/components/themed-text-input";
 import { ThemedView } from "@/components/themed-view";
 import { Contract } from "@/constants/appData";
-import { useLocalSearchParams } from "expo-router";
+import * as Location from "expo-location";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 export default  function SecondStep(){
     const {contract} = useLocalSearchParams<{contract:string}>();
     const userContract : Contract = JSON.parse(contract);
+    const router = useRouter();
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -84,7 +88,10 @@ export default  function SecondStep(){
                                 value={new Date(userContract.accident_date!).toLocaleDateString()}
                             />
                     </ThemedView>
-                    <ThemedButton style={{marginBlock:15}} textValue='Submit Claim' darkBackground='white' lightBackground='black' darkColor='black' lightColor='white' onPress={()=>{}}/>
+                    <ThemedButton style={{marginBlock:15}} textValue='Next' darkBackground='white' lightBackground='black' darkColor='black' lightColor='white' onPress={()=>{router.push({
+                        pathname:"/(accident_report)/step-3",
+                        params: {contract: JSON.stringify(contract)}
+                    })}}/>
                 </ThemedView>
             </ScrollView>
         </KeyboardAvoidingView>

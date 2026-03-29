@@ -4,8 +4,9 @@ import { ThemedTextInput } from '@/components/themed-text-input';
 import { ThemedView } from '@/components/themed-view';
 import { Contract, insuranceList, plateTypeList } from '@/constants/appData';
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Location from 'expo-location';
 import { ThemedButton } from '@/components/themed-button';
 import { getUserContract } from '@/services/api';
 import { useRouter } from 'expo-router';
@@ -24,6 +25,21 @@ export default function FirstStep() {
     setDate(currentDate);
     setDateFrame(false);
   };
+  const [location, setLocation] = useState<Location.LocationObject | null>();
+  const [errorMsg, setErrorMsg] = useState<string | null>();
+    
+    const getLocation = async () => {
+          // 1. Request permission
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') {
+            setErrorMsg('Permission denied');
+            return;
+          }
+    
+          // 2. Get current position
+          const loc = await Location.getCurrentPositionAsync({});
+          setLocation(loc);
+    }
   // Getting user contract by number
   async function getContract() {
     setSubmitButton("Loading...");
@@ -80,6 +96,10 @@ export default function FirstStep() {
               />}
               <ThemedText style={{margin:20}}>Accident Date</ThemedText>
               <ThemedText style={styles.text} darkColor='white' lightColor='black' onPress={()=>setDateFrame(!dateFrame)} >{date.toDateString()}</ThemedText>
+              <View>
+                <ThemedTextInput darkColor='white' lightColor='black' placeholder='Accident location'/>
+                <ThemedButton>Locate</ThemedButton>
+              </View>
               <ThemedButton textValue={submitButton}
                 darkColor='black' 
                 lightColor='white' 

@@ -39,7 +39,14 @@
           }
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow $(BUNDLE_IDENTIFIER) to use your location.",
+          "locationAlwaysAndWhenInUsePermission": "Allow $(BUNDLE_IDENTIFIER) to use your location in the background."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
