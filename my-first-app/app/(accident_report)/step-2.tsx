@@ -1,99 +1,173 @@
-import { ThemedButton } from "@/components/themed-button";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedTextInput } from "@/components/themed-text-input";
-import { ThemedView } from "@/components/themed-view";
 import { Contract } from "@/constants/appData";
-import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
-export default  function SecondStep(){
-    const {contract} = useLocalSearchParams<{contract:string}>();
-    const userContract : Contract = JSON.parse(contract);
-    const router = useRouter();
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-    return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={100}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-                <ThemedView style={{ padding:15, width:"100%" }}>
-                    <ThemedText style={{ marginBlock:10 }} type='subtitle'>Contract Info</ThemedText>
-                    <ThemedView style={{margin:5}}>
-                        <ThemedText>Client:</ThemedText>
-                        <ThemedTextInput
-                            editable={false}
-                            darkColor="white" 
-                            lightColor="black"
-                            darkBackground="#3f3f3f54"
-                            lightBackground="#ffffff"
-                            animationDealy={250}
-                            style={{borderRadius:0}}
-                            value={userContract?.client}
-                        />
-                        <ThemedText>Driving License:</ThemedText>
-                        <ThemedTextInput
-                            editable={false}
-                            darkColor="white"
-                            lightColor="black"
-                            darkBackground="#3f3f3f54"
-                            lightBackground="#ffffff"
-                            style={{borderRadius:0}}
-                            animationDealy={300}
-                            value={userContract?.drivingLicenseNumber}
-                        />
-                        <ThemedText>Vehicle Registration Number:</ThemedText>
-                        <ThemedTextInput
-                            editable={false}
-                            darkColor="white"
-                            lightColor="black"
-                            style={{borderRadius:0}}
-                            darkBackground="#3f3f3f54"
-                            lightBackground="#ffffff"
-                            animationDealy={300}
-                            value={userContract?.registration}
-                        />
-                        <ThemedText>Insurance Company</ThemedText>
-                        <ThemedTextInput
-                            editable={false}
-                            darkColor="white"
-                            lightColor="black"
-                            darkBackground="#3f3f3f54"
-                            style={{borderRadius:0}}
-                            lightBackground="#ffffff"
-                            animationDealy={300}
-                            value={userContract?.insuranceCompany}
-                        />
-                        <ThemedText>Car Brand</ThemedText>
-                        <ThemedTextInput
-                            editable={false}
-                            darkColor="white"
-                            lightColor="black"
-                            darkBackground="#3f3f3f54"
-                            lightBackground="#ffffff"
-                            style={{borderRadius:0}}
-                            animationDealy={300}
-                            value={userContract?.brand}
-                        />
-                        <ThemedText>Car Accident:</ThemedText>
-                            <ThemedTextInput
-                                editable={false}
-                                darkColor="white"
-                                lightColor="black"
-                                darkBackground="#3f3f3f54"
-                                lightBackground="#ffffff"
-                                style={{borderRadius:0}}
-                                animationDealy={300}
-                                value={new Date(userContract.accident_date!).toLocaleDateString()}
-                            />
-                    </ThemedView>
-                    <ThemedButton style={{marginBlock:15}} textValue='Next' darkBackground='white' lightBackground='black' darkColor='black' lightColor='white' onPress={()=>{router.push({
-                        pathname:"/(accident_report)/step-3",
-                        params: {contract: JSON.stringify(contract)}
-                    })}}/>
-                </ThemedView>
-            </ScrollView>
-        </KeyboardAvoidingView>
-    );
-  }
+// --- Design tokens ---
+const C = {
+  bg: "#F5F4F0",
+  card: "#FFFFFF",
+  border: "#E2E0D8",
+  text: "#1A1A18",
+  textMuted: "#7A7870",
+  label: "#4A4844",
+  sectionTitle: "#1A1A18",
+  addBg: "#1A1A18",
+  addText: "#FFFFFF",
+  inputBg: "#FAFAF8",
+  disabledBg: "#F0EFE9",
+};
+
+// --- Sub-components ---
+
+const SectionTitle = ({ children }: { children: string }) => (
+  <Text style={styles.sectionTitle}>{children}</Text>
+);
+
+const FieldLabel = ({ children }: { children: string }) => (
+  <Text style={styles.fieldLabel}>{children}</Text>
+);
+
+const ReadonlyField = ({ value }: { value?: string }) => (
+  <View style={styles.readonlyField}>
+    <Text style={styles.readonlyText}>{value ?? "—"}</Text>
+  </View>
+);
+
+const Divider = () => <View style={styles.divider} />;
+
+// --- Main component ---
+
+export default function SecondStep() {
+  const { contract } = useLocalSearchParams<{ contract: string }>();
+  const userContract: Contract = JSON.parse(contract);
+  const router = useRouter();
+
+  const fields: { label: string; value?: string }[] = [
+    { label: "Client", value: userContract?.client },
+    { label: "Driving License", value: userContract?.drivingLicenseNumber },
+    { label: "Vehicle Registration Number", value: userContract?.registration },
+    { label: "Insurance Company", value: userContract?.insuranceCompany },
+    { label: "Car Brand", value: userContract?.brand },
+  ];
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={100}
+    >
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.screenContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.pageTitle}>Contract Info</Text>
+
+        <View style={styles.card}>
+          <SectionTitle>Contract Details</SectionTitle>
+
+          {fields.map((field, i) => (
+            <View key={field.label}>
+              {i > 0 && <Divider />}
+              <FieldLabel>{field.label}</FieldLabel>
+              <ReadonlyField value={field.value} />
+            </View>
+          ))}
+        </View>
+
+        <TouchableOpacity
+          style={styles.nextBtn}
+          activeOpacity={0.8}
+          onPress={() =>
+            router.push({
+              pathname: "/(accident_report)/step-3",
+              params: { contract: JSON.stringify(contract) },
+            })
+          }
+        >
+          <Text style={styles.nextBtnText}>Next</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+// --- Styles ---
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: C.bg,
+  },
+  screenContent: {
+    padding: 16,
+    paddingBottom: 40,
+    gap: 12,
+  },
+  pageTitle: {
+    fontSize: 25,
+    fontWeight: "bold",
+    color: C.text,
+    marginBottom: 4,
+  },
+  card: {
+    backgroundColor: C.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 16,
+    gap: 12,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: C.sectionTitle,
+    marginBottom: 2,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: C.label,
+    marginBottom: 4,
+  },
+  readonlyField: {
+    backgroundColor: C.disabledBg,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === "ios" ? 11 : 9,
+  },
+  readonlyText: {
+    fontSize: 14,
+    color: C.text,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: C.border,
+    marginVertical: 2,
+  },
+  nextBtn: {
+    backgroundColor: C.addBg,
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  nextBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: C.addText,
+    letterSpacing: 0.2,
+  },
+});

@@ -206,3 +206,19 @@
  Location : backend/src/main/java/com/auth/backend/service/AdminAuthService.java
  Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
 ------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-03-31 11:23:55
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-03-31 11:25:03
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
+------------------------------>

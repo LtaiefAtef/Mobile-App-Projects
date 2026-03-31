@@ -1,48 +1,63 @@
-import { useThemeColor } from "@/hooks/use-theme-color";
 import { Picker } from "@react-native-picker/picker";
-import { StyleSheet, View } from "react-native";
-import Animated from "react-native-reanimated";
-type ThemedPickerProps = {
-    items: { label: string, value: string }[];
-    selectedValue: string | undefined;
-    onValueChange: (value: string) => void;
-    placeholder?: string;
-    lightColor?: string;
-    darkColor?: string;
-    style?: any;
-}
+import { Platform, StyleSheet, View } from "react-native";
 
-export function ThemedPicker({ items, selectedValue, onValueChange, lightColor, darkColor, style }: ThemedPickerProps) {
-    const color = useThemeColor({light : lightColor, dark : darkColor },"text");
-    return (
-        <View style={styles.wrapper}>
-            <Picker
-                style={[styles.picker, style, {color}]}
-                selectedValue={selectedValue}
-                onValueChange={onValueChange}
-                dropdownIconColor={color}
-            >
-                {items.map((item,index) => (
-                    
-                    <Picker.Item enabled={index===0 ? false : true} key={item.value} label={item.label} value={item.value}/>
-                ))}
-            </Picker>
-        </View>
-    );
+const C = {
+  bg: '#F5F4F0',
+  card: '#FFFFFF',
+  border: '#E2E0D8',
+  borderFocus: '#1A1A18',
+  text: '#1A1A18',
+  textMuted: '#7A7870',
+  textPlaceholder: '#B0AEA6',
+  label: '#4A4844',
+  sectionTitle: '#1A1A18',
+  addBg: '#1A1A18',
+  addText: '#FFFFFF',
+  inputBg: '#FAFAF8',
+  disabledBg: '#F0EFE9',
+  pickerBg: '#FAFAF8',
+};
+
+export default function StyledPicker({
+  items,
+  selectedValue,
+  onValueChange,
+  flex
+}: {
+  items: { label: string; value: string }[];
+  selectedValue?: string;
+  onValueChange: (v: string) => void;
+  flex?: number;
+}) {
+  return (
+    <View style={[styles.pickerWrapper, flex !== undefined && { flex }]}>
+      <Picker
+        selectedValue={selectedValue ?? ""}
+        onValueChange={onValueChange}
+        style={[styles.picker, { color: selectedValue ? C.text : C.textMuted }]}
+        dropdownIconColor={C.text}
+      >
+        <Picker.Item label="Select…" value="" color={C.textMuted} style={{ fontSize: 14 }} />
+        {items.map(item => (
+          <Picker.Item key={item.value} label={item.label} value={item.value} color={C.text} style={{ fontSize: 14 }} />
+        ))}
+      </Picker>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    wrapper:{
-        display: "flex", width: "90%",
-        borderBottomWidth: 1,
-        borderBottomColor: "white",
-        borderRadius: 8,
-        overflow: 'hidden',
-        margin:10
-    },
-    picker: {
-        height: 60,
-        width: '100%',
-        color: "white",
-    },
+  pickerWrapper: {
+    backgroundColor: C.pickerBg,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 8,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  picker: {
+    color: C.text,
+    height: Platform.OS === 'ios' ? undefined : 52,
+    fontSize: 14,
+  },
 });

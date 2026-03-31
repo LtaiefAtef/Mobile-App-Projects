@@ -1,137 +1,206 @@
-import { useState } from "react";
-import { ThemedButton } from "@/components/themed-button";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedTextInput } from "@/components/themed-text-input";
-import { ThemedView } from "@/components/themed-view";
-import { Link, router } from "expo-router";
-import { KeyboardAvoidingView, StyleSheet } from "react-native";
 import { loginRequest } from "@/services/api";
 import { saveToken } from "@/services/auth";
+import { Link, router } from "expo-router";
+import { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+// --- Design tokens ---
+const C = {
+  bg: "#F5F4F0",
+  card: "#FFFFFF",
+  border: "#E2E0D8",
+  borderFocus: "#1A1A18",
+  text: "#1A1A18",
+  textMuted: "#7A7870",
+  textPlaceholder: "#B0AEA6",
+  label: "#4A4844",
+  addBg: "#1A1A18",
+  addText: "#FFFFFF",
+  inputBg: "#FAFAF8",
+  errorText: "#C0392B",
+  link: "#1A1A18",
+};
+
+// --- Sub-components ---
+const StyledInput = ({
+  value,
+  onChangeText,
+  placeholder,
+  secureTextEntry,
+  keyboardType,
+}: {
+  value: string;
+  onChangeText: (v: string) => void;
+  placeholder?: string;
+  secureTextEntry?: boolean;
+  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad";
+}) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[styles.input, focused && styles.inputFocused]}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder ?? ""}
+      placeholderTextColor={C.textPlaceholder}
+      secureTextEntry={secureTextEntry}
+      keyboardType={keyboardType ?? "default"}
+      autoCapitalize="none"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+    />
+  );
+};
+
+const ErrorMsg = ({ msg }: { msg: string }) =>
+  msg ? <Text style={styles.errorText}>{msg}</Text> : null;
+
+// --- Main component ---
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ username: "", password: "" });
 
-  const handleLogin = async() => {
+  const handleLogin = async () => {
     const newErrors = { username: "", password: "" };
     let hasError = false;
 
-    // Username must be alphanumeric
     const usernameRegex = /^[a-zA-Z0-9]+$/;
     if (!usernameRegex.test(username)) {
       newErrors.username = "Username must be alphanumeric.";
       hasError = true;
     }
 
-    // Password must be at least 6 characters
     if (password.length < 6) {
       newErrors.password = "Password must be at least 6 characters long.";
       hasError = true;
     }
 
     setErrors(newErrors);
+    if (hasError) return;
 
-    if (hasError) {
-      return;
-    }
-    console.log("Validation passed, attempting login...");
-    const data = await loginRequest(username,password);
-    if(data==null){
-      console.log("Login failed: No data returned");
-      return;
-    }
+    const data = await loginRequest(username, password);
+    if (!data) return;
     await saveToken(data.access_token, data.refresh_token, data.expires_in);
-    console.log("Login successful, token saved. DATA : ", data);
     router.push("/");
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
-      <ThemedView
-        style={styles.container}
-        darkColor="black"
-        lightColor="#f8faff8e"
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.screenContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ThemedText style={styles.title} type="title">
-          Welcome to FTUSA
-        </ThemedText>
+        <View style={styles.header}>
+          <Text style={styles.pageTitle}>Welcome to FTUSA</Text>
+          <Text style={styles.pageSubtitle}>Sign in to your account</Text>
+        </View>
 
-        <ThemedTextInput
-          placeholder="Username"
-          darkColor="white"
-          lightColor="black"
-          darkBackground="#3f3f3f54"
-          lightBackground="#ffffff"
-          animationDealy={200}
-          value={username}
-          onChangeText={(text) => {
-            setUsername(text);
-            setErrors((prev) => ({ ...prev, username: "" }));
-          }}
-        />
-        {errors.username ? (
-          <ThemedText style={styles.errorText}>{errors.username}</ThemedText>
-        ) : null}
+        <View style={styles.card}>
+          <Text style={styles.fieldLabel}>Username</Text>
+          <StyledInput
+            placeholder="Username"
+            value={username}
+            onChangeText={(text) => {
+              setUsername(text);
+              setErrors((prev) => ({ ...prev, username: "" }));
+            }}
+          />
+          <ErrorMsg msg={errors.username} />
 
-        <ThemedTextInput
-          placeholder="Password"
-          darkColor="white"
-          lightColor="black"
-          animationDealy={400}
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            setErrors((prev) => ({ ...prev, password: "" }));
-          }}
-          secureTextEntry
-        />
-        {errors.password ? (
-          <ThemedText style={styles.errorText}>{errors.password}</ThemedText>
-        ) : null}
+          <Text style={styles.fieldLabel}>Password</Text>
+          <StyledInput
+            placeholder="Password"
+            value={password}
+            secureTextEntry
+            onChangeText={(text) => {
+              setPassword(text);
+              setErrors((prev) => ({ ...prev, password: "" }));
+            }}
+          />
+          <ErrorMsg msg={errors.password} />
 
-        <ThemedButton
-          style={{ marginBlock: 20 }}
-          lightBackground="#000000"
-          darkBackground="#ffff"
-          lightColor="white"
-          darkColor="black"
-          textValue="Login"
-          onPress={handleLogin}
-        />
+          <TouchableOpacity style={styles.submitBtn} onPress={handleLogin} activeOpacity={0.8}>
+            <Text style={styles.submitBtnText}>Login</Text>
+          </TouchableOpacity>
+        </View>
 
-        <ThemedView
-          style={{
-            backgroundColor: "transparent",
-            width: "80%",
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <ThemedText>Don't have an account? </ThemedText>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account? </Text>
           <Link href="/(auth)/signup" dismissTo>
-            <ThemedText type="link">Sign Up</ThemedText>
+            <Text style={styles.footerLink}>Sign Up</Text>
           </Link>
-        </ThemedView>
-      </ThemedView>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
+  screen: { flex: 1, backgroundColor: C.bg },
+  screenContent: {
+    flexGrow: 1,
+    padding: 24,
     justifyContent: "center",
+    gap: 16,
   },
-  title: {
-    padding: 20,
+  header: { alignItems: "center", marginBottom: 8 },
+  pageTitle: { fontSize: 26, fontWeight: "bold", color: C.text },
+  pageSubtitle: { fontSize: 14, color: C.textMuted, marginTop: 4 },
+  card: {
+    backgroundColor: C.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 16,
+    gap: 8,
   },
-  errorText: {
-    color: "red",
-    fontSize:12,
-    width: "85%",
-    fontWeight: "bold",
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: C.label,
+    marginBottom: 2,
+    marginTop: 4,
   },
+  input: {
+    backgroundColor: C.inputBg,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === "ios" ? 11 : 9,
+    fontSize: 14,
+    color: C.text,
+  },
+  inputFocused: { borderColor: C.borderFocus, backgroundColor: C.card },
+  errorText: { fontSize: 12, color: C.errorText, fontWeight: "500" },
+  submitBtn: {
+    backgroundColor: C.addBg,
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  submitBtnText: { fontSize: 14, fontWeight: "600", color: C.addText, letterSpacing: 0.2 },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  footerText: { fontSize: 14, color: C.textMuted },
+  footerLink: { fontSize: 14, fontWeight: "600", color: C.link, textDecorationLine: "underline" },
 });

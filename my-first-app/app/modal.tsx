@@ -9,11 +9,8 @@ export default function ModalScreen() {
     <ThemedView style={styles.container}>
       <ThemedText type="title">Welcome to FTUSA</ThemedText>
       {/* <Link href="/(auth)/login" dismissTo style={styles.link}> */}
-      <Link href="/(auth)/login" dismissTo style={styles.link}>
+      <Link href="/(auth)/login" dismissTo style={styles.link}> 
         <ThemedText type="link">User Login</ThemedText>
-      </Link>
-      <Link href="/(accident_report)/claim-form" dismissTo style={styles.link}>
-        <ThemedText type="link">Agent Login</ThemedText>
       </Link>
     </ThemedView>
   );

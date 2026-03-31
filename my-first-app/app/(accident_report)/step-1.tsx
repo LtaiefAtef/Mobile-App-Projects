@@ -1,124 +1,277 @@
-import { ThemedPicker } from '@/components/themed-picker';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedTextInput } from '@/components/themed-text-input';
-import { ThemedView } from '@/components/themed-view';
 import { Contract, insuranceList, plateTypeList } from '@/constants/appData';
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import * as Location from 'expo-location';
-import { ThemedButton } from '@/components/themed-button';
 import { getUserContract } from '@/services/api';
 import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import StyledPicker from '@/components/themed-picker';
+
+// --- Design tokens ---
+const C = {
+  bg: '#F5F4F0',
+  card: '#FFFFFF',
+  border: '#E2E0D8',
+  borderFocus: '#1A1A18',
+  text: '#1A1A18',
+  textMuted: '#7A7870',
+  textPlaceholder: '#B0AEA6',
+  label: '#4A4844',
+  sectionTitle: '#1A1A18',
+  addBg: '#1A1A18',
+  addText: '#FFFFFF',
+  inputBg: '#FAFAF8',
+  disabledBg: '#F0EFE9',
+  pickerBg: '#FAFAF8',
+};
+
+// --- Sub-components ---
+
+const SectionTitle = ({ children }: { children: string }) => (
+  <Text style={styles.sectionTitle}>{children}</Text>
+);
+
+const FieldLabel = ({ children }: { children: string }) => (
+  <Text style={styles.fieldLabel}>{children}</Text>
+);
+
+const StyledInput = ({
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType,
+}: {
+  value?: string;
+  onChangeText?: (v: string) => void;
+  placeholder?: string;
+  keyboardType?: 'default' | 'numeric';
+}) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[styles.input, focused && styles.inputFocused]}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder ?? ''}
+      placeholderTextColor={C.textPlaceholder}
+      keyboardType={keyboardType ?? 'default'}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+    />
+  );
+};
+const Divider = () => <View style={styles.divider} />;
+
+// --- Main component ---
+
 export default function FirstStep() {
   const router = useRouter();
-  const [selectedInsurance, setSelectedInsurance] = useState<string|undefined>(undefined);
-  const [selectedPlateType, setSelectedPlateType] = useState<string|undefined>(undefined);
-  const [contractNumber, setContractNumber] = useState<string|undefined>(undefined);
-  const [dateFrame, setDateFrame] = useState<boolean>(false);
-  const [date, setDate] = useState(new Date());
-  const [submitButton, setSubmitButton] = useState("Next");
+  const [selectedInsurance, setSelectedInsurance] = useState<string | undefined>(undefined);
+  const [selectedPlateType, setSelectedPlateType] = useState<string | undefined>(undefined);
+  const [contractNumber, setContractNumber] = useState<string | undefined>(undefined);
+  const [vehicleRegistration, setVehicleRegistration] = useState<string[]>([]);
+  const [submitButton, setSubmitButton] = useState('Next');
+  const [loading, setLoading] = useState(false);
 
-  const changeDate = (event: any, selectedDate?: Date | null) => {
-    console.log("Date selected:", selectedDate);
-    const currentDate = selectedDate || date;
-    setDate(currentDate);
-    setDateFrame(false);
-  };
-  const [location, setLocation] = useState<Location.LocationObject | null>();
-  const [errorMsg, setErrorMsg] = useState<string | null>();
-    
-    const getLocation = async () => {
-          // 1. Request permission
-          const { status } = await Location.requestForegroundPermissionsAsync();
-          if (status !== 'granted') {
-            setErrorMsg('Permission denied');
-            return;
-          }
-    
-          // 2. Get current position
-          const loc = await Location.getCurrentPositionAsync({});
-          setLocation(loc);
-    }
-  // Getting user contract by number
   async function getContract() {
-    setSubmitButton("Loading...");
-    setTimeout(async() => {
-          console.log("Getting user contract, Contract Number: "+ contractNumber);
-          const userContract = await getUserContract(contractNumber);
-          console.log("User contract claim-form.tsx line 33",userContract);
-          setSubmitButton("Next")
-          router.push({
-            pathname:"/(accident_report)/step-2",
-            params: {contract:JSON.stringify({...userContract[0],accident_date:date})}
-          });
+    setSubmitButton('Loading…');
+    setLoading(true);
+    setTimeout(async () => {
+      const userContract = await getUserContract(contractNumber);
+      setSubmitButton('Next');
+      setLoading(false);
+      router.push({
+        pathname: '/(accident_report)/step-2',
+        params: { contract: JSON.stringify({ ...userContract[0] }) },
+      });
     }, 3000);
   }
+  // --- Getting Setup Info ---
+  useEffect(() => {
+    const loadSetupInfo = async () => {
+      const raw = await AsyncStorage.getItem("@account_setup_form");
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed) return;
+
+      // Set defaults from saved setup info
+      console.log("PREFFILLED SETUP INFO:", parsed);
+      setContractNumber(parsed.contractNumber);
+      setSelectedInsurance(parsed.insuranceCompany);   // match your AsyncStorage key
+      const registration = parsed.registrationNumber.split(" ");
+      setSelectedPlateType(parsed.registrationPlateType); // match your AsyncStorage key
+      setVehicleRegistration(registration);
+    };
+    loadSetupInfo();
+  }, []);
   return (
     <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={100}>
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={100}
+    >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled">
-        <ThemedView style={styles.container}>
-          <ThemedText style={styles.label} darkColor='white' lightColor='black'>Search Vehicle</ThemedText>
-            <ThemedPicker
-                  items={insuranceList}
-                  selectedValue={selectedInsurance} 
-                  onValueChange={(value) => {
-                      setSelectedInsurance(value);
-                  }}
-              />
-          {selectedInsurance && <ThemedView>
-              <ThemedTextInput darkColor='white' lightColor='black' placeholder='Policy Number' onChangeText={setContractNumber}/>
-              <ThemedText style={{margin:20, fontSize:16}}>Vehicle Registration Number</ThemedText>
-              <ThemedView style={{display:"flex", flexDirection:"row", justifyContent:"space-between", width:"35%"}}>
-                <ThemedTextInput darkColor='white' lightColor='black' placeholder=''/>
-                <ThemedPicker 
-                  items={plateTypeList}
-                  selectedValue={selectedPlateType}
-                  onValueChange={(value) => {
-                      setSelectedPlateType(value);
-                  }}
-                />
-                <ThemedTextInput darkColor='white' lightColor='black' placeholder=''/>
-              </ThemedView>
-                {dateFrame &&
-                  <DateTimePicker
-                    testID="dateTimePicker"
-                    value={date}
-                    mode="date"
-                    is24Hour={true}
-                    display="default"
-              onChange={changeDate}
-              />}
-              <ThemedText style={{margin:20}}>Accident Date</ThemedText>
-              <ThemedText style={styles.text} darkColor='white' lightColor='black' onPress={()=>setDateFrame(!dateFrame)} >{date.toDateString()}</ThemedText>
-              <View>
-                <ThemedTextInput darkColor='white' lightColor='black' placeholder='Accident location'/>
-                <ThemedButton>Locate</ThemedButton>
+        style={styles.screen}
+        contentContainerStyle={styles.screenContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.pageTitle}>Search Vehicle</Text>
+
+        {/* ── Insurance selection ── */}
+        <View style={styles.card}>
+          <SectionTitle>Insurance Company</SectionTitle>
+          <StyledPicker
+            items={insuranceList}
+            selectedValue={selectedInsurance}
+            onValueChange={setSelectedInsurance}
+          />
+        </View>
+
+        {/* ── Contract + plate fields (shown after insurance selected) ── */}
+        {selectedInsurance && (
+          <View style={styles.card}>
+            <SectionTitle>Vehicle Details</SectionTitle>
+
+            <FieldLabel>Policy Number</FieldLabel>
+            <StyledInput
+              placeholder="Policy Number"
+              onChangeText={setContractNumber}
+              value={contractNumber}
+            />
+            <Divider />
+
+            <FieldLabel>Vehicle Registration Number</FieldLabel>
+            <View style={styles.plateRow}>
+              <View style={styles.plateInputWrapper}>
+                <StyledInput placeholder="" value={vehicleRegistration[0]} />
               </View>
-              <ThemedButton textValue={submitButton}
-                darkColor='black' 
-                lightColor='white' 
-                darkBackground="white" 
-                lightBackground="black"
-                ViewStyle={{marginTop:30, width:"100%"}}
-                onPress={() => {getContract()}} 
+              <StyledPicker
+                items={plateTypeList}
+                selectedValue={selectedPlateType}
+                onValueChange={setSelectedPlateType}
+                flex={1}
               />
-            </ThemedView>}
-        </ThemedView>
+              <View style={styles.plateInputWrapper}>
+                <StyledInput placeholder="" value={vehicleRegistration[2]}/>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.nextBtn, loading && styles.nextBtnDisabled]}
+              activeOpacity={0.8}
+              onPress={getContract}
+              disabled={loading}
+            >
+              <Text style={styles.nextBtnText}>{submitButton}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
-} 
+}
+
+// --- Styles ---
 
 const styles = StyleSheet.create({
-  container: {flex:1},
-  label: { fontSize: 25, fontWeight: "bold", margin:20 },
-  picker: { height: 50, width: '80%'},
-  result: { marginTop: 16, fontSize: 16, color: 'gray' },
-  text :{ fontSize: 16, marginLeft:15, borderBottomWidth:1, borderBottomColor:"gray", width:"70%", paddingBottom:10 }
+  screen: {
+    flex: 1,
+    backgroundColor: C.bg,
+  },
+  screenContent: {
+    padding: 16,
+    paddingBottom: 40,
+    gap: 12,
+  },
+  pageTitle: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: C.text,
+    marginBottom: 4,
+  },
+  card: {
+    backgroundColor: C.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 16,
+    gap: 12,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: C.sectionTitle,
+    marginBottom: 2,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: C.label,
+    marginBottom: 4,
+  },
+  input: {
+    backgroundColor: C.inputBg,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 11 : 9,
+    fontSize: 14,
+    color: C.text,
+  },
+  inputFocused: {
+    borderColor: C.borderFocus,
+    backgroundColor: C.card,
+  },
+  pickerWrapper: {
+    backgroundColor: C.pickerBg,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 8,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  picker: {
+    color: C.text,
+    height: Platform.OS === 'ios' ? undefined : 52,
+    fontSize: 14,
+  },
+  plateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  plateInputWrapper: {
+    flex: 1,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: C.border,
+    marginVertical: 2,
+  },
+  nextBtn: {
+    backgroundColor: C.addBg,
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  nextBtnDisabled: {
+    opacity: 0.5,
+  },
+  nextBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.addText,
+    letterSpacing: 0.2,
+  },
 });

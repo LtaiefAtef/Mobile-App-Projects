@@ -1,5 +1,5 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { StyleSheet, TextInput, View, type TextInputProps } from "react-native";
+import { StyleSheet, TextInput, View, ViewStyle, type TextInputProps } from "react-native";
 import Animated,{FadeInRight, FadeInUp} from "react-native-reanimated";
 
 export type ThemedTextInputProps = TextInputProps & {
@@ -8,8 +8,9 @@ export type ThemedTextInputProps = TextInputProps & {
     lightBackground?:string;
     darkBackground?:string;
     animationDealy?:number;
+    viewStyle?:ViewStyle
 }
-export function ThemedTextInput({style,lightColor,darkColor,lightBackground,darkBackground,animationDealy=200,...rest}:ThemedTextInputProps){
+export function ThemedTextInput({style,viewStyle,lightColor,darkColor,lightBackground,darkBackground,animationDealy=200,...rest}:ThemedTextInputProps){
     const color = useThemeColor({ light:lightColor, dark:darkColor },"text")
     const backgroundColor = useThemeColor({light:lightBackground,dark:darkBackground},"background")
     return (
