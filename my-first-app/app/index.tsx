@@ -25,19 +25,22 @@ export default function Home() {
       <View style={styles.card}>
         <Text style={styles.title}>Home</Text>
         <View style={styles.divider} />
-        <Text style={styles.subtitle}>
-          Start a new accident report and file your claim quickly.
-        </Text>
         <TouchableOpacity
           style={styles.btn}
           activeOpacity={0.8}
           onPress={() => router.push("/(accident_report)/step-1")}
         >
-          <Text style={styles.btnText}>Create a claim</Text>
+          <Text style={styles.btnText}>Create a claim manually</Text>
         </TouchableOpacity>
-        <Text style={styles.subtitle}>
-          Start a new accident report and file your claim quickly.
-        </Text>
+        <Text style={styles.subtitle}>Start a new accident report and file your claim manually.</Text>
+        <TouchableOpacity
+          style={styles.btn}
+          activeOpacity={0.8}
+          onPress={() => router.push("/(accident_report)/step-1??shared=true")}
+        >
+          <Text style={styles.btnText}>Create with shared party</Text>
+        </TouchableOpacity>
+        <Text style={styles.subtitle}>Start an accident report and file your claim by sharing it with the other driver.</Text>
         <TouchableOpacity
           style={styles.btn}
           activeOpacity={0.8}
@@ -45,6 +48,7 @@ export default function Home() {
         >
           <Text style={styles.btnText}>Set up your account</Text>
         </TouchableOpacity>
+        <Text style={styles.subtitle}>Setup your account for a better experience.</Text>
       </View>
     </View>
   );

@@ -23,6 +23,7 @@ export default function RootLayout() {
         <Stack.Screen name="(accident_report)/step-1" options={{ title: "Step 1" }} />
         <Stack.Screen name="(accident_report)/step-2" options={{title:"Step 2"}}/>
         <Stack.Screen name="(accident_report)/step-3" options={{title:"Step 3"}}/>
+        <Stack.Screen name="(accident_report)/step-4" options={{title:"Step 4"}}/>
         <Stack.Screen name="(accident_report)/sheet" options={{title:"dawd"}}/>
         <Stack.Screen name="(account_setup)/setup" options={{ title: "Account Setup" }} />
       </Stack>

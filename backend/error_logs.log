@@ -222,3 +222,11 @@
  Location : backend/src/main/java/com/auth/backend/service/AuthService.java
  Error    : 401 Unauthorized on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": [no body]
 ------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-04-02 10:43:30
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 409 Conflict on POST request for "http://localhost:8080/admin/realms/mobile-realm/users": "{"errorMessage":"User exists with same username"}"
+------------------------------>

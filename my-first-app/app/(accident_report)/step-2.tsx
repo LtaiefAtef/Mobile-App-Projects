@@ -1,28 +1,36 @@
-import { Contract } from "@/constants/appData";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Contract, insuranceList, plateTypeList } from '@/constants/appData';
+import { getUserContract } from '@/services/api';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import StyledPicker from '@/components/themed-picker';
 
 // --- Design tokens ---
 const C = {
-  bg: "#F5F4F0",
-  card: "#FFFFFF",
-  border: "#E2E0D8",
-  text: "#1A1A18",
-  textMuted: "#7A7870",
-  label: "#4A4844",
-  sectionTitle: "#1A1A18",
-  addBg: "#1A1A18",
-  addText: "#FFFFFF",
-  inputBg: "#FAFAF8",
-  disabledBg: "#F0EFE9",
+  bg: '#F5F4F0',
+  card: '#FFFFFF',
+  border: '#E2E0D8',
+  borderFocus: '#1A1A18',
+  text: '#1A1A18',
+  textMuted: '#7A7870',
+  textPlaceholder: '#B0AEA6',
+  label: '#4A4844',
+  sectionTitle: '#1A1A18',
+  addBg: '#1A1A18',
+  addText: '#FFFFFF',
+  inputBg: '#FAFAF8',
+  disabledBg: '#F0EFE9',
+  pickerBg: '#FAFAF8',
 };
 
 // --- Sub-components ---
@@ -35,33 +43,78 @@ const FieldLabel = ({ children }: { children: string }) => (
   <Text style={styles.fieldLabel}>{children}</Text>
 );
 
-const ReadonlyField = ({ value }: { value?: string }) => (
-  <View style={styles.readonlyField}>
-    <Text style={styles.readonlyText}>{value ?? "—"}</Text>
-  </View>
-);
-
+const StyledInput = ({
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType,
+}: {
+  value?: string;
+  onChangeText?: (v: string) => void;
+  placeholder?: string;
+  keyboardType?: 'default' | 'numeric';
+}) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[styles.input, focused && styles.inputFocused]}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder ?? ''}
+      placeholderTextColor={C.textPlaceholder}
+      keyboardType={keyboardType ?? 'default'}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+    />
+  );
+};
 const Divider = () => <View style={styles.divider} />;
 
 // --- Main component ---
 
-export default function SecondStep() {
-  const { contract } = useLocalSearchParams<{ contract: string }>();
-  const userContract: Contract = JSON.parse(contract);
+export default function Step2() {
   const router = useRouter();
+  const [selectedInsurance, setSelectedInsurance] = useState<string | undefined>(undefined);
+  const [selectedPlateType, setSelectedPlateType] = useState<string | undefined>(undefined);
+  const [contractNumber, setContractNumber] = useState<string | undefined>(undefined);
+  const [vehicleRegistration, setVehicleRegistration] = useState<string[]>([]);
+  const [submitButton, setSubmitButton] = useState('Next');
+  const [loading, setLoading] = useState(false);
 
-  const fields: { label: string; value?: string }[] = [
-    { label: "Client", value: userContract?.client },
-    { label: "Driving License", value: userContract?.drivingLicenseNumber },
-    { label: "Vehicle Registration Number", value: userContract?.registration },
-    { label: "Insurance Company", value: userContract?.insuranceCompany },
-    { label: "Car Brand", value: userContract?.brand },
-  ];
+  async function getContract() {
+    setSubmitButton('Loading…');
+    setLoading(true);
+    setTimeout(async () => {
+      const userContract = await getUserContract(contractNumber);
+      setSubmitButton('Next');
+      setLoading(false);
+      router.push({
+        pathname: '/(accident_report)/step-3',
+        params: { contract: JSON.stringify({ ...userContract[0] }) },
+      });
+    }, 3000);
+  }
+  // --- Getting Setup Info ---
+  useEffect(() => {
+    const loadSetupInfo = async () => {
+      const raw = await AsyncStorage.getItem("@account_setup_form");
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed) return;
 
+      // Set defaults from saved setup info
+      console.log("PREFFILLED SETUP INFO:", parsed);
+      setContractNumber(parsed.contractNumber);
+      setSelectedInsurance(parsed.insuranceCompany);   // match your AsyncStorage key
+      const registration = [parsed.registrationLeft, parsed.registrationPlateType, parsed.registrationRight];
+      setVehicleRegistration(registration);
+      setSelectedPlateType(parsed.registrationPlateType); // match your AsyncStorage key
+    };
+    loadSetupInfo();
+  }, []);
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={100}
     >
       <ScrollView
@@ -70,32 +123,57 @@ export default function SecondStep() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.pageTitle}>Contract Info</Text>
+        <Text style={styles.pageTitle}>Search Vehicle</Text>
 
+        {/* ── Insurance selection ── */}
         <View style={styles.card}>
-          <SectionTitle>Contract Details</SectionTitle>
-
-          {fields.map((field, i) => (
-            <View key={field.label}>
-              {i > 0 && <Divider />}
-              <FieldLabel>{field.label}</FieldLabel>
-              <ReadonlyField value={field.value} />
-            </View>
-          ))}
+          <SectionTitle>Insurance Company</SectionTitle>
+          <StyledPicker
+            items={insuranceList}
+            selectedValue={selectedInsurance}
+            onValueChange={setSelectedInsurance}
+          />
         </View>
 
-        <TouchableOpacity
-          style={styles.nextBtn}
-          activeOpacity={0.8}
-          onPress={() =>
-            router.push({
-              pathname: "/(accident_report)/step-3",
-              params: { contract: JSON.stringify(contract) },
-            })
-          }
-        >
-          <Text style={styles.nextBtnText}>Next</Text>
-        </TouchableOpacity>
+        {/* ── Contract + plate fields (shown after insurance selected) ── */}
+        {selectedInsurance && (
+          <View style={styles.card}>
+            <SectionTitle>Vehicle Details</SectionTitle>
+
+            <FieldLabel>Policy Number</FieldLabel>
+            <StyledInput
+              placeholder="Policy Number"
+              onChangeText={setContractNumber}
+              value={contractNumber}
+            />
+            <Divider />
+
+            <FieldLabel>Vehicle Registration Number</FieldLabel>
+            <View style={styles.plateRow}>
+              <View style={styles.plateInputWrapper}>
+                <StyledInput placeholder="" value={vehicleRegistration[0]} />
+              </View>
+              <StyledPicker
+                items={plateTypeList}
+                selectedValue={selectedPlateType}
+                onValueChange={setSelectedPlateType}
+                flex={1}
+              />
+              <View style={styles.plateInputWrapper}>
+                <StyledInput placeholder="" value={vehicleRegistration[2]}/>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.nextBtn, loading && styles.nextBtnDisabled]}
+              activeOpacity={0.8}
+              onPress={getContract}
+              disabled={loading}
+            >
+              <Text style={styles.nextBtnText}>{submitButton}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -114,8 +192,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   pageTitle: {
+    marginLeft: 4,
     fontSize: 25,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: C.text,
     marginBottom: 4,
   },
@@ -130,27 +209,50 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: '600',
     color: C.sectionTitle,
     marginBottom: 2,
   },
   fieldLabel: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
     color: C.label,
     marginBottom: 4,
   },
-  readonlyField: {
-    backgroundColor: C.disabledBg,
+  input: {
+    backgroundColor: C.inputBg,
     borderWidth: 1,
     borderColor: C.border,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 11 : 9,
-  },
-  readonlyText: {
+    paddingVertical: Platform.OS === 'ios' ? 11 : 9,
     fontSize: 14,
     color: C.text,
+  },
+  inputFocused: {
+    borderColor: C.borderFocus,
+    backgroundColor: C.card,
+  },
+  pickerWrapper: {
+    backgroundColor: C.pickerBg,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 8,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  picker: {
+    color: C.text,
+    height: Platform.OS === 'ios' ? undefined : 52,
+    fontSize: 14,
+  },
+  plateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  plateInputWrapper: {
+    flex: 1,
   },
   divider: {
     height: 1,
@@ -161,12 +263,15 @@ const styles = StyleSheet.create({
     backgroundColor: C.addBg,
     borderRadius: 8,
     paddingVertical: 14,
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 4,
+  },
+  nextBtnDisabled: {
+    opacity: 0.5,
   },
   nextBtnText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     color: C.addText,
     letterSpacing: 0.2,
   },

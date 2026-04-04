@@ -1,82 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import { Contract } from "@/constants/appData";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
-  View,
-  Text,
-  TextInput,
-  Switch,
-  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
-  Platform,
-  KeyboardAvoidingView,
-} from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import * as Location from 'expo-location';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// --- Types ---
-type Witness = {
-  id: string;
-  full_name: string;
-  address: string;
-  isPassangerOfVehicle: boolean;
-};
-
-type FormData = {
-  // Page 2 fields
-  address: string;
-  date: Date;
-  // Page 1 fields
-  injuries: {
-    anyInjuries: boolean;
-    injuryDetails: string;
-  };
-  otherVehiclesDamaged: {
-    otherVehicleInvolved: boolean;
-    numberOfVehicles: string;
-  };
-  witnesses: Witness[];
-};
-
-// --- Initial state ---
-const initialForm: FormData = {
-  address: '',
-  date: new Date(),
-  injuries: {
-    anyInjuries: false,
-    injuryDetails: '',
-  },
-  otherVehiclesDamaged: {
-    otherVehicleInvolved: false,
-    numberOfVehicles: '',
-  },
-  witnesses: [],
-};
-
-const makeWitness = (): Witness => ({
-  id: Date.now().toString(),
-  full_name: '',
-  address: '',
-  isPassangerOfVehicle: false,
-});
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 // --- Design tokens ---
 const C = {
-  bg: '#F5F4F0',
-  card: '#FFFFFF',
-  border: '#E2E0D8',
-  borderFocus: '#1A1A18',
-  text: '#1A1A18',
-  textMuted: '#7A7870',
-  textPlaceholder: '#B0AEA6',
-  label: '#4A4844',
-  sectionTitle: '#1A1A18',
-  removeRed: '#C0392B',
-  removeBg: '#FDF0EE',
-  addBg: '#1A1A18',
-  addText: '#FFFFFF',
-  switchTrue: '#1A1A18',
-  inputBg: '#FAFAF8',
+  bg: "#F5F4F0",
+  card: "#FFFFFF",
+  border: "#E2E0D8",
+  text: "#1A1A18",
+  textMuted: "#7A7870",
+  label: "#4A4844",
+  sectionTitle: "#1A1A18",
+  addBg: "#1A1A18",
+  addText: "#FFFFFF",
+  inputBg: "#FAFAF8",
+  disabledBg: "#F0EFE9",
 };
 
 // --- Sub-components ---
@@ -89,148 +35,38 @@ const FieldLabel = ({ children }: { children: string }) => (
   <Text style={styles.fieldLabel}>{children}</Text>
 );
 
-const StyledInput = ({
-  value,
-  onChangeText,
-  placeholder,
-  multiline,
-  keyboardType,
-  editable,
-}: {
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder?: string;
-  multiline?: boolean;
-  keyboardType?: 'default' | 'numeric';
-  editable?: boolean;
-}) => {
-  const [focused, setFocused] = useState(false);
-  return (
-    <TextInput
-      style={[
-        styles.input,
-        multiline && styles.inputMultiline,
-        focused && styles.inputFocused,
-        editable === false && styles.inputDisabled,
-      ]}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder ?? ''}
-      placeholderTextColor={C.textPlaceholder}
-      multiline={multiline}
-      keyboardType={keyboardType ?? 'default'}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      textAlignVertical={multiline ? 'top' : 'center'}
-      editable={editable !== false}
-    />
-  );
-};
-
-const SwitchRow = ({
-  label,
-  value,
-  onValueChange,
-}: {
-  label: string;
-  value: boolean;
-  onValueChange: (v: boolean) => void;
-}) => (
-  <View style={styles.switchRow}>
-    <Text style={styles.switchLabel}>{label}</Text>
-    <Switch
-      value={value}
-      onValueChange={onValueChange}
-      trackColor={{ false: C.border, true: C.switchTrue }}
-      thumbColor="#FFFFFF"
-      ios_backgroundColor={C.border}
-    />
+const ReadonlyField = ({ value }: { value?: string }) => (
+  <View style={styles.readonlyField}>
+    <Text style={styles.readonlyText}>{value ?? "—"}</Text>
   </View>
 );
 
 const Divider = () => <View style={styles.divider} />;
 
-// --- Main form ---
+// --- Main component ---
 
 export default function Step3() {
-  const [form, setForm] = useState<FormData>(initialForm);
-  const [dateFrame, setDateFrame] = useState(false);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { contract } = useLocalSearchParams<{ contract: string }>();
+  const userContract: Contract = JSON.parse(contract);
+  console.log("Received contract:", userContract);
+  const router = useRouter();
 
-  // --- Location ---
-  const getLocation = async () => {
-    setLocationLoading(true);
-    setForm(f => ({ ...f, address: 'Locating...' }));
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      setErrorMsg('Permission denied');
-      setForm(f => ({ ...f, address: '' }));
-      setLocationLoading(false);
-      return;
-    }
-    const loc = await Location.getCurrentPositionAsync({});
-    const places = await Location.reverseGeocodeAsync({
-      latitude: loc.coords.latitude,
-      longitude: loc.coords.longitude,
-    });
-    if (places.length > 0) {
-      const place = places[0];
-      setForm(f => ({ ...f, address: place.formattedAddress ?? '' }));
-    }
-    setLocationLoading(false);
-  };
-
-  // --- Date ---
-  const changeDate = (_: any, selectedDate?: Date | null) => {
-    setDateFrame(false);
-    if (selectedDate) setForm(f => ({ ...f, date: selectedDate }));
-  };
-
-  // --- Injuries ---
-  const setAnyInjuries = (v: boolean) =>
-    setForm(f => ({
-      ...f,
-      injuries: { ...f.injuries, anyInjuries: v, injuryDetails: v ? f.injuries.injuryDetails : '' },
-    }));
-
-  const setInjuryDetails = (v: string) =>
-    setForm(f => ({ ...f, injuries: { ...f.injuries, injuryDetails: v } }));
-
-  // --- Other vehicles ---
-  const setOtherVehicleInvolved = (v: boolean) =>
-    setForm(f => ({
-      ...f,
-      otherVehiclesDamaged: {
-        ...f.otherVehiclesDamaged,
-        otherVehicleInvolved: v,
-        numberOfVehicles: v ? f.otherVehiclesDamaged.numberOfVehicles : '',
-      },
-    }));
-
-  const setNumberOfVehicles = (v: string) =>
-    setForm(f => ({
-      ...f,
-      otherVehiclesDamaged: { ...f.otherVehiclesDamaged, numberOfVehicles: v },
-    }));
-
-  // --- Witnesses ---
-  const addWitness = () =>
-    setForm(f => ({ ...f, witnesses: [...f.witnesses, makeWitness()] }));
-
-  const removeWitness = (id: string) =>
-    setForm(f => ({ ...f, witnesses: f.witnesses.filter(w => w.id !== id) }));
-
-  const updateWitness = (id: string, key: keyof Omit<Witness, 'id'>, value: string | boolean) =>
-    setForm(f => ({
-      ...f,
-      witnesses: f.witnesses.map(w => (w.id === id ? { ...w, [key]: value } : w)),
-    }));
+  const fields: { label: string; value?: string }[] = [
+    { label: "Client", value: userContract?.client },
+    { label: "Driving License", value: userContract?.drivingLicenseNumber },
+    { label: "Vehicle Registration Number", value: userContract?.registration },
+    { label: "Insurance Company", value: userContract?.insuranceCompany },
+    { label: "Car Brand", value: userContract?.brand },
+    { label: "Status", value: userContract?.status },
+    { label: "Start Date", value: userContract?.startDate },
+    { label: "End Date", value: userContract?.endDate },
+    { label: "Payment Method", value: userContract?.paymentMethod}
+  ];
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={100}
     >
       <ScrollView
@@ -239,162 +75,32 @@ export default function Step3() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.pageTitle}>Accident Info</Text>
+        <Text style={styles.pageTitle}>Contract Info</Text>
 
-        {/* ── Shared Info ── */}
         <View style={styles.card}>
-          <SectionTitle>Shared Info</SectionTitle>
+          <SectionTitle>Contract Details</SectionTitle>
 
-          {/* Location */}
-          <FieldLabel>Accident location</FieldLabel>
-          <View style={styles.locationRow}>
-            <View style={styles.locationInputWrapper}>
-              <StyledInput
-                value={form.address}
-                onChangeText={v => setForm(f => ({ ...f, address: v }))}
-                placeholder="Accident location"
-                editable={!locationLoading}
-              />
-            </View>
-            <TouchableOpacity
-              style={styles.locateBtn}
-              onPress={getLocation}
-              activeOpacity={0.8}
-              disabled={locationLoading}
-            >
-              <Text style={styles.locateBtnText}>
-                {locationLoading ? '…' : 'Locate'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
-
-          <Divider />
-
-          {/* Date */}
-          <FieldLabel>Accident date</FieldLabel>
-          <TouchableOpacity
-            style={styles.dateField}
-            onPress={() => setDateFrame(!dateFrame)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.dateText}>{form.date.toDateString()}</Text>
-          </TouchableOpacity>
-
-          {dateFrame && (
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={form.date}
-              mode="date"
-              is24Hour={true}
-              display="default"
-              onChange={changeDate}
-            />
-          )}
-        </View>
-
-        {/* ── Injuries ── */}
-        <View style={styles.card}>
-          <SectionTitle>Injuries</SectionTitle>
-
-          <SwitchRow
-            label="Any injuries?"
-            value={form.injuries.anyInjuries}
-            onValueChange={setAnyInjuries}
-          />
-
-          {form.injuries.anyInjuries && (
-            <>
-              <Divider />
-              <FieldLabel>Injury details</FieldLabel>
-              <StyledInput
-                value={form.injuries.injuryDetails}
-                onChangeText={setInjuryDetails}
-                placeholder="Describe the injuries..."
-                multiline
-              />
-            </>
-          )}
-        </View>
-
-        {/* ── Other Vehicles ── */}
-        <View style={styles.card}>
-          <SectionTitle>Other vehicles damaged</SectionTitle>
-
-          <SwitchRow
-            label="Other vehicle involved?"
-            value={form.otherVehiclesDamaged.otherVehicleInvolved}
-            onValueChange={setOtherVehicleInvolved}
-          />
-
-          {form.otherVehiclesDamaged.otherVehicleInvolved && (
-            <>
-              <Divider />
-              <FieldLabel>Number of vehicles</FieldLabel>
-              <StyledInput
-                value={form.otherVehiclesDamaged.numberOfVehicles}
-                onChangeText={setNumberOfVehicles}
-                placeholder="e.g. 2"
-                keyboardType="numeric"
-              />
-            </>
-          )}
-        </View>
-
-        {/* ── Witnesses ── */}
-        <View style={styles.card}>
-          <SectionTitle>Witnesses</SectionTitle>
-
-          {form.witnesses.length === 0 && (
-            <Text style={styles.emptyText}>No witnesses added yet.</Text>
-          )}
-
-          {form.witnesses.map((w, i) => (
-            <View key={w.id}>
+          {fields.map((field, i) => (
+            <View key={field.label}>
               {i > 0 && <Divider />}
-              <View style={styles.witnessBlock}>
-                <View style={styles.witnessBlockHeader}>
-                  <Text style={styles.witnessIndex}>Witness {i + 1}</Text>
-                  <TouchableOpacity
-                    onPress={() => removeWitness(w.id)}
-                    style={styles.removeBtn}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={styles.removeBtnText}>Remove</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <FieldLabel>Full name</FieldLabel>
-                <StyledInput
-                  value={w.full_name}
-                  onChangeText={v => updateWitness(w.id, 'full_name', v)}
-                  placeholder="e.g. Mohamed Trabelsi"
-                />
-
-                <View style={styles.fieldGap} />
-
-                <FieldLabel>Address</FieldLabel>
-                <StyledInput
-                  value={w.address}
-                  onChangeText={v => updateWitness(w.id, 'address', v)}
-                  placeholder="e.g. 12 Rue de Carthage, Tunis"
-                />
-
-                <View style={styles.fieldGap} />
-
-                <SwitchRow
-                  label="Passenger of a vehicle?"
-                  value={w.isPassangerOfVehicle}
-                  onValueChange={v => updateWitness(w.id, 'isPassangerOfVehicle', v)}
-                />
-              </View>
+              <FieldLabel>{field.label}</FieldLabel>
+              <ReadonlyField value={field.value} />
             </View>
           ))}
-
-          <TouchableOpacity style={styles.addBtn} onPress={addWitness} activeOpacity={0.8}>
-            <Text style={styles.addBtnText}>+ Add witness</Text>
-          </TouchableOpacity>
         </View>
+
+        <TouchableOpacity
+          style={styles.nextBtn}
+          activeOpacity={0.8}
+          onPress={() =>
+            router.push({
+              pathname: "/(accident_report)/step-4",
+              params: { contract: JSON.stringify(contract) },
+            })
+          }
+        >
+          <Text style={styles.nextBtnText}>Next</Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -414,7 +120,7 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     fontSize: 25,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: C.text,
     marginBottom: 4,
   },
@@ -429,136 +135,43 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     color: C.sectionTitle,
     marginBottom: 2,
   },
   fieldLabel: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
     color: C.label,
     marginBottom: 4,
   },
-  input: {
-    backgroundColor: C.inputBg,
+  readonlyField: {
+    backgroundColor: C.disabledBg,
     borderWidth: 1,
     borderColor: C.border,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 11 : 9,
+    paddingVertical: Platform.OS === "ios" ? 11 : 9,
+  },
+  readonlyText: {
     fontSize: 14,
     color: C.text,
-  },
-  inputFocused: {
-    borderColor: C.borderFocus,
-    backgroundColor: C.card,
-  },
-  inputMultiline: {
-    minHeight: 88,
-    paddingTop: 11,
-  },
-  inputDisabled: {
-    opacity: 0.6,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  locationInputWrapper: {
-    flex: 1,
-  },
-  locateBtn: {
-    backgroundColor: C.addBg,
-    borderRadius: 8,
-    paddingVertical: Platform.OS === 'ios' ? 11 : 9,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  locateBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: C.addText,
-  },
-  dateField: {
-    backgroundColor: C.inputBg,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 11 : 9,
-  },
-  dateText: {
-    fontSize: 14,
-    color: C.text,
-  },
-  errorText: {
-    fontSize: 12,
-    color: C.removeRed,
-    marginTop: -4,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  switchLabel: {
-    fontSize: 14,
-    color: C.text,
-    flex: 1,
-    paddingRight: 12,
   },
   divider: {
     height: 1,
     backgroundColor: C.border,
     marginVertical: 2,
   },
-  emptyText: {
-    fontSize: 13,
-    color: C.textMuted,
-    fontStyle: 'italic',
-  },
-  witnessBlock: {
-    gap: 8,
-  },
-  witnessBlockHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  witnessIndex: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: C.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  removeBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: C.removeBg,
-    borderRadius: 6,
-  },
-  removeBtnText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: C.removeRed,
-  },
-  fieldGap: {
-    height: 2,
-  },
-  addBtn: {
+  nextBtn: {
     backgroundColor: C.addBg,
     borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
+    paddingVertical: 14,
+    alignItems: "center",
     marginTop: 4,
   },
-  addBtnText: {
+  nextBtnText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: C.addText,
     letterSpacing: 0.2,
   },
