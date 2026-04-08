@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StyledPicker from '@/components/themed-picker';
+import { useAccidentReport } from '@/context/AccidentReportContext';
 
 // --- Design tokens ---
 const C = {
@@ -73,24 +74,33 @@ const Divider = () => <View style={styles.divider} />;
 // --- Main component ---
 
 export default function Step2() {
-  const router = useRouter();
+  // -- Saving Step 2 and redirecting to Step 3 ---
+  // --- Field ---
   const [selectedInsurance, setSelectedInsurance] = useState<string | undefined>(undefined);
   const [selectedPlateType, setSelectedPlateType] = useState<string | undefined>(undefined);
   const [contractNumber, setContractNumber] = useState<string | undefined>(undefined);
   const [vehicleRegistration, setVehicleRegistration] = useState<string[]>([]);
+  const router = useRouter();
   const [submitButton, setSubmitButton] = useState('Next');
   const [loading, setLoading] = useState(false);
-
-  async function getContract() {
+  const {selectedDriver, report, update} = useAccidentReport();
+  // --- Function ---
+  async function saveAndRedirect() {
     setSubmitButton('Loading…');
     setLoading(true);
     setTimeout(async () => {
       const userContract = await getUserContract(contractNumber);
       setSubmitButton('Next');
       setLoading(false);
+      if(selectedDriver === "driverA"){
+        console.log("driver A");
+        update({ insuranceCompany: { vehicleA: { companyName: selectedInsurance, contractNumber } }, driver: {driverA: { license:userContract[0].drivingLicenseNumber }} });
+      }else{
+        update({ insuranceCompany: { vehicleB: { companyName: selectedInsurance, contractNumber } }, driver: {driverB: { license:userContract[0].drivingLicenseNumber }} });
+      }
       router.push({
         pathname: '/(accident_report)/step-3',
-        params: { contract: JSON.stringify({ ...userContract[0] }) },
+        params: { contract: JSON.stringify(userContract[0]) }
       });
     }, 3000);
   }
@@ -167,7 +177,7 @@ export default function Step2() {
             <TouchableOpacity
               style={[styles.nextBtn, loading && styles.nextBtnDisabled]}
               activeOpacity={0.8}
-              onPress={getContract}
+              onPress={saveAndRedirect}
               disabled={loading}
             >
               <Text style={styles.nextBtnText}>{submitButton}</Text>

@@ -19,7 +19,6 @@ const C = {
 
 export default function Home() {
   const router = useRouter();
-
   return (
     <View style={styles.screen}>
       <View style={styles.card}>
@@ -36,7 +35,7 @@ export default function Home() {
         <TouchableOpacity
           style={styles.btn}
           activeOpacity={0.8}
-          onPress={() => router.push("/(accident_report)/step-1??shared=true")}
+          onPress={() => router.push("/(shared_accident_report)/session")}
         >
           <Text style={styles.btnText}>Create with shared party</Text>
         </TouchableOpacity>

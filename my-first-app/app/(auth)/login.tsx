@@ -1,5 +1,5 @@
 import { loginRequest } from "@/services/api";
-import { saveToken } from "@/services/auth";
+import { saveToken, saveUser } from "@/services/auth";
 import { Link, router } from "expo-router";
 import { useState } from "react";
 import {
@@ -91,6 +91,7 @@ export default function Login() {
     const data = await loginRequest(username, password);
     if (!data) return;
     await saveToken(data.access_token, data.refresh_token, data.expires_in);
+    saveUser(username);
     router.push("/");
   };
 

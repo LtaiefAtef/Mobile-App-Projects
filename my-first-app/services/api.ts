@@ -11,7 +11,6 @@ console.log("API URL set to:", API_URL);
 // Get Token function
 export async function getToken(): Promise<string | null> {
     const token = await getAccessToken();
-    console.log("Getting the token");
     if (!token) {
         console.log("Token is not there");
         router.replace("/login");
@@ -19,7 +18,6 @@ export async function getToken(): Promise<string | null> {
     }
 
     const expiresAt = await getTokenExpirationDate();
-    console.log(expiresAt, Date.now());
     if (!expiresAt || Date.now() > expiresAt) {
         console.log("GETTING REFRESH TOKEN")
         const refreshToken = await getRefreshToken();
@@ -40,8 +38,7 @@ export async function getToken(): Promise<string | null> {
         const data = await res.json();
         await saveToken(data.access_token, data.refresh_token, data.expires_in);
         return data.access_token;
-    }
-
+    }   
     return token;
 }
 
@@ -109,7 +106,7 @@ export async function getUserContract(contractNumber: string|undefined) {
   console.log("THIS IS USER TOKEN TO GET CONTRACT API.TS LINE 109 ");
   const res = await fetch(`${API_URL}/users/contracts`,{
     method:"POST",
-    headers: { 
+    headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type':"application/json"
  },

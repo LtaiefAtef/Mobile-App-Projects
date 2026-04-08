@@ -3,6 +3,8 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput
 import { View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
+import { CircumstancesVehicle, useAccidentReport } from "@/context/AccidentReportContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 // --- Design tokens ---
 const C = {
   bg: '#F5F4F0',
@@ -116,9 +118,12 @@ function changeDate(_: any, selectedDate?: Date | null){
   setDateFrame(false);
   if(selectedDate) setDate(selectedDate);
 }
-
-// --- Circumstances Value ---
-const [circumstances, setCircumstances] = useState({
+// --- Driver Information ---
+const [fullName, setFullName] = useState<string>("")
+const [address, setAdress] = useState<string>("");
+const [visibleDamage, setVisibleDamage] = useState<string>("");
+const [accidentPrespective, setAccidentPrespective] = useState< string>("");
+const [circumstances, setCircumstances] = useState<CircumstancesVehicle>({
   parkedStationary: false,
   leavingParkingOrDriveway: false,
   enteringParkingOrDriveway: false,
@@ -135,6 +140,7 @@ const [circumstances, setCircumstances] = useState({
   crossingIntersection: false,
   ranRedLight: false,
   failedToYieldRightOfWay: false,
+  totalChecked:0
 });
 // --- Toggle CheckBox ---
 const toggleCircumstance = (key: keyof typeof circumstances) => {
@@ -142,6 +148,45 @@ const toggleCircumstance = (key: keyof typeof circumstances) => {
 };
 // --- Expo Router ---
 const router = useRouter();
+// --- Save Step 4 and Redirect ---
+const { selectedDriver, report, update, switchDriver } = useAccidentReport();
+const SaveAndRedirect = async()=>{
+  const totalChecked = Object.keys(circumstances).filter(key => circumstances[key as keyof CircumstancesVehicle] === true).length;
+  if(selectedDriver === "driverA"){
+    console.log("driverA step4");
+    update({
+      driver: {
+        driverA: { fullName, address, dateOfBirth:date.toDateString()},
+      },
+      visibiledamage: {
+        vehicleA: visibleDamage,
+      },
+      accidentPerspective: {
+        driverA: accidentPrespective,
+      },
+      circumstances: {
+        vehicleA: { ...circumstances, totalChecked },
+      },
+    });
+  }else{
+    update({
+      driver: {
+        driverB: { fullName, address, dateOfBirth:date.toDateString() },
+      },
+      visibiledamage: {
+        vehicleB: visibleDamage,
+      },
+      accidentPerspective: {
+        driverB: accidentPrespective,
+      },
+      circumstances: {
+        vehicleB: { ...circumstances, totalChecked },
+      },
+    });
+  }
+  router.push("/(accident_report)/step-5");
+  console.log("FULL DRIVER A REPORT : ",report);
+}
 return (
     <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -149,18 +194,18 @@ return (
         keyboardVerticalOffset={100}
     >
         <ScrollView 
-        style={styles.screen} 
-        contentContainerStyle={styles.screenContent} 
-        keyboardShouldPersistTaps="handled" 
-        showsVerticalScrollIndicator={false}>
+          style={styles.screen} 
+          contentContainerStyle={styles.screenContent} 
+          keyboardShouldPersistTaps="handled" 
+          showsVerticalScrollIndicator={false}>
             <Text style={styles.pageTitle}>Contract Info</Text>
             {/* --- Driver Section --- */}
             <View style={styles.card}>
                 <SectionTitle>Driver Information</SectionTitle>
                 <FieldLabel>Fullname</FieldLabel>
-                <StyledInput placeholder="Fullname" keyboardType="default" onChangeText={()=>{}} value=""/>
+                <StyledInput placeholder="Fullname" keyboardType="default" onChangeText={ v => setFullName(v) } value={fullName}/>
                 <FieldLabel>Address</FieldLabel>
-                <StyledInput placeholder="Address" keyboardType="default" onChangeText={()=>{}} value=""/>
+                <StyledInput placeholder="Address" keyboardType="default" onChangeText={ v => setAdress(v) } value={address}/>
                 <FieldLabel>Date of birth</FieldLabel>
                 <TouchableOpacity
                   style={styles.dateField}
@@ -176,18 +221,18 @@ return (
                     display="default"
                     onChange={changeDate}
                 ></DateTimePicker>}
-                <FieldLabel>Visible Damage</FieldLabel>
-                <StyledInput placeholder="" keyboardType="default" onChangeText={()=>{}} value="" multiline/>
             </View>
             {/* --- Damage Section --- */}
             <View style={styles.card}>
                 <SectionTitle>Damage Information</SectionTitle>
                 <FieldLabel>Visible Damage</FieldLabel>
-                <StyledInput placeholder="" keyboardType="default" onChangeText={()=>{}} value="" multiline/>
+                <StyledInput placeholder="" keyboardType="default" onChangeText={v => setVisibleDamage(v)} value={visibleDamage} multiline/>
+                <FieldLabel>Accident Prespective</FieldLabel>
+                <StyledInput placeholder="Your perspective of the accident" keyboardType="default" onChangeText={v => setAccidentPrespective(v)} value={accidentPrespective} multiline/>
                 <FieldLabel>Circumstances</FieldLabel>
                 <View style={styles.circumstancesGrid}>
                   {(Object.keys(circumstances) as Array<keyof typeof circumstances>).map(key => (
-                    <Checkbox
+                    key !== "totalChecked" && <Checkbox
                       key={key}
                       label={CIRCUMSTANCES_LABELS[key]}
                       checked={circumstances[key]}
@@ -196,7 +241,7 @@ return (
                   ))}
                 </View>
             </View>
-            <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={ ()=> router.push({ pathname: "/(accident_report)/step-1" })}>
+            <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={ SaveAndRedirect }>
               <Text style={styles.addBtnText}>Next</Text>
             </TouchableOpacity>
         </ScrollView>

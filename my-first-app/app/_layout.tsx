@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AccidentReportProvider } from '@/context/AccidentReportContext';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -13,21 +14,26 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        <Stack.Screen name="index" options={{ headerShown:false }} />
-        <Stack.Screen name="(auth)/login" options={{ headerShown: false }}/>
-        <Stack.Screen name="(auth)/signup" options={{ headerShown: false }}/>
-        <Stack.Screen name="(auth)/verify-email" options={{headerShown: false }}/>
-        <Stack.Screen name="(accident_report)/step-1" options={{ title: "Step 1" }} />
-        <Stack.Screen name="(accident_report)/step-2" options={{title:"Step 2"}}/>
-        <Stack.Screen name="(accident_report)/step-3" options={{title:"Step 3"}}/>
-        <Stack.Screen name="(accident_report)/step-4" options={{title:"Step 4"}}/>
-        <Stack.Screen name="(accident_report)/sheet" options={{title:"dawd"}}/>
-        <Stack.Screen name="(account_setup)/setup" options={{ title: "Account Setup" }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <AccidentReportProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            <Stack.Screen name="index" options={{ headerShown:false }} />
+            <Stack.Screen name="(auth)/login" options={{ headerShown: false }}/>
+            <Stack.Screen name="(auth)/signup" options={{ headerShown: false }}/>
+            <Stack.Screen name="(auth)/verify-email" options={{headerShown: false }}/>
+            <Stack.Screen name="(accident_report)/step-1" options={{ title: "Step 1" }} />
+            <Stack.Screen name="(accident_report)/step-2" options={{title:"Step 2"}}/>
+            <Stack.Screen name="(accident_report)/step-3" options={{title:"Step 3"}}/>
+            <Stack.Screen name="(accident_report)/step-4" options={{title:"Step 4"}}/>
+            <Stack.Screen name="(accident_report)/step-5" options={{title:"Step 5"}}/>
+            <Stack.Screen name="(shared_accident_report)/room" options={{ title: "Session Room" }} />
+            <Stack.Screen name="(shared_accident_report)/index" options={{ title: "Session Page" }} />
+            <Stack.Screen name="(accident_report)/sheet" options={{title:"Successful Report"}}/>
+            <Stack.Screen name="(account_setup)/setup" options={{ title: "Account Setup" }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+    </AccidentReportProvider>
   );
 }

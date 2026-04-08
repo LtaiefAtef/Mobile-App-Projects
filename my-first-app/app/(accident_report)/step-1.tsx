@@ -13,6 +13,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
+import { useAccidentReport } from '@/context/AccidentReportContext';
 
 // --- Types ---
 type Witness = {
@@ -25,7 +26,7 @@ type Witness = {
 type FormData = {
   // Page 2 fields
   address: string;
-  date: Date;
+  accidentDate: Date;
   // Page 1 fields
   injuries: {
     anyInjuries: boolean;
@@ -41,7 +42,7 @@ type FormData = {
 // --- Initial state ---
 const initialForm: FormData = {
   address: '',
-  date: new Date(),
+  accidentDate: new Date(),
   injuries: {
     anyInjuries: false,
     injuryDetails: '',
@@ -226,7 +227,14 @@ export default function Step1() {
       ...f,
       witnesses: f.witnesses.map(w => (w.id === id ? { ...w, [key]: value } : w)),
     }));
-
+  // --- Save step 1 and redirect to step 2 ---
+  const { report, update} = useAccidentReport();
+  const saveAndRedirect = () => {
+    update({accidentDate:form.accidentDate.toDateString(), submittedAt:new Date().toDateString() ,accidentLocation:form.address, injuries:form.injuries, witnesses:form.witnesses,
+       otherVehiclesDamaged: { otherVehicleInvolved:form.otherVehiclesDamaged.otherVehicleInvolved, numberOfVehicles: Number(form.otherVehiclesDamaged.numberOfVehicles) }})
+    console.log("Data saved step 1");
+    router.push({ pathname: "/(accident_report)/step-2" });
+  }
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -278,13 +286,13 @@ export default function Step1() {
             onPress={() => setDateFrame(!dateFrame)}
             activeOpacity={0.7}
           >
-            <Text style={styles.dateText}>{form.date.toDateString()}</Text>
+            <Text style={styles.dateText}>{form.accidentDate.toDateString()}</Text>
           </TouchableOpacity>
 
           {dateFrame && (
             <DateTimePicker
               testID="dateTimePicker"
-              value={form.date}
+              value={form.accidentDate}
               mode="date"
               is24Hour={true}
               display="default"
@@ -394,7 +402,7 @@ export default function Step1() {
             <Text style={styles.addBtnText}>+ Add witness</Text>
           </TouchableOpacity>
         </View>
-         <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={ ()=> router.push({ pathname: "/(accident_report)/step-2" })}>
+         <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={saveAndRedirect}>
             <Text style={styles.addBtnText} >Next</Text>
           </TouchableOpacity>
       </ScrollView>

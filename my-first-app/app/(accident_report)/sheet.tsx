@@ -1,303 +1,223 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
-  TextInput,
-  Switch,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
   Platform,
+  ScrollView,
 } from 'react-native';
-
-// --- Types ---
-type Witness = {
-  id: string;
-  full_name: string;
-  address: string;
-  isPassangerOfVehicle: boolean;
-};
-
-type FormData = {
-  injuries: {
-    anyInjuries: boolean;
-    injuryDetails: string;
-  };
-  otherVehiclesDamaged: {
-    otherVehicleInvolved: boolean;
-    numberOfVehicles: string;
-  };
-  witnesses: Witness[];
-};
-
-// --- Initial state ---
-
-const initialForm: FormData = {
-  injuries: {
-    anyInjuries: false,
-    injuryDetails: '',
-  },
-  otherVehiclesDamaged: {
-    otherVehicleInvolved: false,
-    numberOfVehicles: '',
-  },
-  witnesses: [],
-};
-
-const makeWitness = (): Witness => ({
-  id: Date.now().toString(),
-  full_name: '',
-  address: '',
-  isPassangerOfVehicle: false,
-});
+import { useRouter } from 'expo-router';
+import { useAccidentReport } from '@/context/AccidentReportContext';
 
 // --- Design tokens ---
-
 const C = {
   bg: '#F5F4F0',
   card: '#FFFFFF',
   border: '#E2E0D8',
-  borderFocus: '#1A1A18',
   text: '#1A1A18',
   textMuted: '#7A7870',
-  textPlaceholder: '#B0AEA6',
   label: '#4A4844',
-  sectionTitle: '#1A1A18',
-  removeRed: '#C0392B',
-  removeBg: '#FDF0EE',
   addBg: '#1A1A18',
   addText: '#FFFFFF',
-  switchTrue: '#1A1A18',
   inputBg: '#FAFAF8',
+  green: '#4CAF50',
+  greenBg: '#EAF5EA',
+  greenBorder: '#4CAF50',
 };
 
 // --- Sub-components ---
+const Divider = () => <View style={styles.divider} />;
 
-const SectionTitle = ({ children }: { children: string }) => (
-  <Text style={styles.sectionTitle}>{children}</Text>
-);
-
-const FieldLabel = ({ children }: { children: string }) => (
-  <Text style={styles.fieldLabel}>{children}</Text>
-);
-    
-const StyledInput = ({
-  value,
-  onChangeText,
-  placeholder,
-  multiline,
-  keyboardType,
-}: {
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder?: string;
-  multiline?: boolean;
-  keyboardType?: 'default' | 'numeric';
-}) => {
-  const [focused, setFocused] = useState(false);
-  return (
-    <TextInput
-      style={[
-        styles.input,
-        multiline && styles.inputMultiline,
-        focused && styles.inputFocused,
-      ]}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder ?? ''}
-      placeholderTextColor={C.textPlaceholder}
-      multiline={multiline}
-      keyboardType={keyboardType ?? 'default'}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      textAlignVertical={multiline ? 'top' : 'center'}
-    />
-  );
-};
-
-const SwitchRow = ({
-  label,
-  value,
-  onValueChange,
-}: {
-  label: string;
-  value: boolean;
-  onValueChange: (v: boolean) => void;
-}) => (
-  <View style={styles.switchRow}>
-    <Text style={styles.switchLabel}>{label}</Text>
-    <Switch
-      value={value}
-      onValueChange={onValueChange}
-      trackColor={{ false: C.border, true: C.switchTrue }}
-      thumbColor="#FFFFFF"
-      ios_backgroundColor={C.border}
-    />
+const InfoRow = ({ label, value }: { label: string; value: string }) => (
+  <View style={styles.infoRow}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoValue}>{value}</Text>
   </View>
 );
 
-const Divider = () => <View style={styles.divider} />;
-
-// --- Main form ---
-
-export default function IncidentReportForm() {
-  const [form, setForm] = useState<FormData>(initialForm);
-
-  // Injuries
-  const setAnyInjuries = (v: boolean) =>
-    setForm(f => ({
-      ...f,
-      injuries: { ...f.injuries, anyInjuries: v, injuryDetails: v ? f.injuries.injuryDetails : '' },
-    }));
-
-  const setInjuryDetails = (v: string) =>
-    setForm(f => ({ ...f, injuries: { ...f.injuries, injuryDetails: v } }));
-
-  // Other vehicles
-  const setOtherVehicleInvolved = (v: boolean) =>
-    setForm(f => ({
-      ...f,
-      otherVehiclesDamaged: {
-        ...f.otherVehiclesDamaged,
-        otherVehicleInvolved: v,
-        numberOfVehicles: v ? f.otherVehiclesDamaged.numberOfVehicles : '',
-      },
-    }));
-
-  const setNumberOfVehicles = (v: string) =>
-    setForm(f => ({
-      ...f,
-      otherVehiclesDamaged: { ...f.otherVehiclesDamaged, numberOfVehicles: v },
-    }));
-
-  // Witnesses
-  const addWitness = () =>
-    setForm(f => ({ ...f, witnesses: [...f.witnesses, makeWitness()] }));
-
-  const removeWitness = (id: string) =>
-    setForm(f => ({ ...f, witnesses: f.witnesses.filter(w => w.id !== id) }));
-
-  const updateWitness = (id: string, key: keyof Omit<Witness, 'id'>, value: string | boolean) =>
-    setForm(f => ({
-      ...f,
-      witnesses: f.witnesses.map(w => (w.id === id ? { ...w, [key]: value } : w)),
-    }));
+// --- Main ---
+export default function SuccessPage() {
+  const router = useRouter();
+  const { report, downloadReport } = useAccidentReport();
+  const [showReport, setShowReport] = React.useState(false);
 
   return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.screenContent}
-      keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      {/* ── Injuries ── */}
-      <View style={styles.card}>
-        <SectionTitle>Injuries</SectionTitle>
-
-        <SwitchRow
-          label="Any injuries?"
-          value={form.injuries.anyInjuries}
-          onValueChange={setAnyInjuries}
-        />
-
-        {form.injuries.anyInjuries && (
-          <>
-            <Divider />
-            <FieldLabel>Injury details</FieldLabel>
-            <StyledInput
-              value={form.injuries.injuryDetails}
-              onChangeText={setInjuryDetails}
-              placeholder="Describe the injuries..."
-              multiline
-            />
-          </>
-        )}
+      {/* ── Success Banner ── */}
+      <View style={styles.banner}>
+        <View style={styles.iconCircle}>
+          <Text style={styles.iconText}>✓</Text>
+        </View>
+        <Text style={styles.bannerTitle}>Report Submitted</Text>
+        <Text style={styles.bannerSubtitle}>
+          Your accident report has been successfully submitted.
+        </Text>
+        <Text style={styles.bannerDate}>
+          Submitted on {report.submittedAt || new Date().toLocaleDateString('fr-TN')}
+        </Text>
       </View>
 
-      {/* ── Other Vehicles ── */}
-      <View style={styles.card}>
-        <SectionTitle>Other vehicles damaged</SectionTitle>
+      {/* ── View Full Report toggle ── */}
+      <TouchableOpacity
+        style={styles.toggleReportBtn}
+        onPress={() => setShowReport(v => !v)}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.toggleReportBtnText}>
+          {showReport ? 'Hide Report ↑' : 'View Full Report ↓'}
+        </Text>
+      </TouchableOpacity>
 
-        <SwitchRow
-          label="Other vehicle involved?"
-          value={form.otherVehiclesDamaged.otherVehicleInvolved}
-          onValueChange={setOtherVehicleInvolved}
-        />
-
-        {form.otherVehiclesDamaged.otherVehicleInvolved && (
-          <>
+      {showReport && (
+        <>
+          {/* ── Accident Info ── */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Accident Info</Text>
+            <InfoRow label="Date" value={report.accidentDate || '—'} />
             <Divider />
-            <FieldLabel>Number of vehicles</FieldLabel>
-            <StyledInput
-              value={form.otherVehiclesDamaged.numberOfVehicles}
-              onChangeText={setNumberOfVehicles}
-              placeholder="e.g. 2"
-              keyboardType="numeric"
+            <InfoRow label="Location" value={report.accidentLocation || '—'} />
+            <Divider />
+            <InfoRow
+              label="Injuries"
+              value={report.injuries.anyInjuries
+                ? report.injuries.injuryDetails || 'Yes'
+                : 'None'}
             />
-          </>
-        )}
-      </View>
-
-      {/* ── Witnesses ── */}
-      <View style={styles.card}>
-        <SectionTitle>Witnesses</SectionTitle>
-
-        {form.witnesses.length === 0 && (
-          <Text style={styles.emptyText}>No witnesses added yet.</Text>
-        )}
-
-        {form.witnesses.map((w, i) => (
-          <View key={w.id}>
-            {i > 0 && <Divider />}
-            <View style={styles.witnessBlock}>
-              <View style={styles.witnessBlockHeader}>
-                <Text style={styles.witnessIndex}>Witness {i + 1}</Text>
-                <TouchableOpacity
-                  onPress={() => removeWitness(w.id)}
-                  style={styles.removeBtn}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.removeBtnText}>Remove</Text>
-                </TouchableOpacity>
-              </View>
-
-              <FieldLabel>Full name</FieldLabel>
-              <StyledInput
-                value={w.full_name}
-                onChangeText={v => updateWitness(w.id, 'full_name', v)}
-                placeholder="e.g. Mohamed Trabelsi"
-              />
-
-              <View style={styles.fieldGap} />
-
-              <FieldLabel>Address</FieldLabel>
-              <StyledInput
-                value={w.address}
-                onChangeText={v => updateWitness(w.id, 'address', v)}
-                placeholder="e.g. 12 Rue de Carthage, Tunis"
-              />
-
-              <View style={styles.fieldGap} />
-
-              <SwitchRow
-                label="Passenger of a vehicle?"
-                value={w.isPassangerOfVehicle}
-                onValueChange={v => updateWitness(w.id, 'isPassangerOfVehicle', v)}
-              />
-            </View>
+            <Divider />
+            <InfoRow
+              label="Other vehicles"
+              value={report.otherVehiclesDamaged.otherVehicleInvolved
+                ? `${report.otherVehiclesDamaged.numberOfVehicles} vehicle(s)`
+                : 'None'}
+            />
           </View>
-        ))}
 
-        <TouchableOpacity style={styles.addBtn} onPress={addWitness} activeOpacity={0.8}>
-          <Text style={styles.addBtnText}>+ Add witness</Text>
-        </TouchableOpacity>
-      </View>
+          {/* ── Driver A ── */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Driver A</Text>
+            <InfoRow label="Name" value={report.driver.driverA.fullName || '—'} />
+            <Divider />
+            <InfoRow label="Address" value={report.driver.driverA.address || '—'} />
+            <Divider />
+            <InfoRow label="Date of Birth" value={report.driver.driverA.dateOfBirth || '—'} />
+            <Divider />
+            <InfoRow label="License" value={report.driver.driverA.license || '—'} />
+            <Divider />
+            <InfoRow label="Insurance" value={report.insuranceCompany.vehicleA.companyName || '—'} />
+            <Divider />
+            <InfoRow label="Contract No." value={report.insuranceCompany.vehicleA.contractNumber || '—'} />
+            <Divider />
+            <InfoRow label="Visible Damage" value={report.visibiledamage.vehicleA || '—'} />
+            <Divider />
+            <InfoRow
+              label="Circumstances"
+              value={`${report.circumstances.vehicleA.totalChecked} checked`}
+            />
+          </View>
+
+          {/* ── Driver B ── */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Driver B</Text>
+            <InfoRow label="Name" value={report.driver.driverB.fullName || '—'} />
+            <Divider />
+            <InfoRow label="Address" value={report.driver.driverB.address || '—'} />
+            <Divider />
+            <InfoRow label="Date of Birth" value={report.driver.driverB.dateOfBirth || '—'} />
+            <Divider />
+            <InfoRow label="License" value={report.driver.driverB.license || '—'} />
+            <Divider />
+            <InfoRow label="Insurance" value={report.insuranceCompany.vehicleB.companyName || '—'} />
+            <Divider />
+            <InfoRow label="Contract No." value={report.insuranceCompany.vehicleB.contractNumber || '—'} />
+            <Divider />
+            <InfoRow label="Visible Damage" value={report.visibiledamage.vehicleB || '—'} />
+            <Divider />
+            <InfoRow
+              label="Circumstances"
+              value={`${report.circumstances.vehicleB.totalChecked} checked`}
+            />
+          </View>
+
+          {/* ── Witnesses ── */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Witnesses</Text>
+            {report.witnesses.length === 0 ? (
+              <Text style={styles.emptyText}>No witnesses.</Text>
+            ) : (
+              report.witnesses.map((w, i) => (
+                <View key={i}>
+                  {i > 0 && <Divider />}
+                  <InfoRow label={`Witness ${i + 1}`} value={w.full_name || '—'} />
+                  <InfoRow label="Address" value={w.address || '—'} />
+                  <InfoRow
+                    label="Passenger"
+                    value={w.isPassangerOfVehicle ? 'Yes' : 'No'}
+                  />
+                </View>
+              ))
+            )}
+          </View>
+
+          {/* ── Perspectives ── */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Accident Perspective</Text>
+            <Text style={styles.perspectiveLabel}>Driver A</Text>
+            <Text style={styles.perspectiveText}>
+              {report.accidentPerspective.driverA || '—'}
+            </Text>
+            <Divider />
+            <Text style={styles.perspectiveLabel}>Driver B</Text>
+            <Text style={styles.perspectiveText}>
+              {report.accidentPerspective.driverB || '—'}
+            </Text>
+          </View>
+
+          {/* ── Signatures ── */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Signatures</Text>
+            <InfoRow
+              label="Vehicle A"
+              value={report.signatures.vehicleA.signed
+                ? `Signed on ${report.signatures.vehicleA.signedAt}`
+                : 'Not signed'}
+            />
+            <Divider />
+            <InfoRow
+              label="Vehicle B"
+              value={report.signatures.vehicleB.signed
+                ? `Signed on ${report.signatures.vehicleB.signedAt}`
+                : 'Not signed'}
+            />
+          </View>
+          {/* ── Download Button ── */}
+          <TouchableOpacity
+            style={styles.downloadBtn}
+            onPress={()=> downloadReport(report)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.downloadBtnText}>⬇ Download PDF</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {/* ── Go Home ── */}
+      <TouchableOpacity
+        style={styles.homeBtn}
+        onPress={() => router.replace('/')}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.homeBtnText}>Go back to Home</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 // --- Styles ---
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -305,8 +225,61 @@ const styles = StyleSheet.create({
   },
   screenContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 48,
     gap: 12,
+  },
+  banner: {
+    backgroundColor: C.greenBg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.greenBorder,
+    padding: 24,
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: C.green,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  iconText: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '700',
+  },
+  bannerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: C.text,
+  },
+  bannerSubtitle: {
+    fontSize: 14,
+    color: C.textMuted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  bannerDate: {
+    fontSize: 12,
+    color: C.textMuted,
+    marginTop: 2,
+  },
+  toggleReportBtn: {
+    backgroundColor: C.card,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  toggleReportBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.text,
   },
   card: {
     backgroundColor: C.card,
@@ -314,101 +287,77 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.border,
     padding: 16,
-    gap: 12,
-    marginBottom: 12,
+    gap: 10,
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: C.sectionTitle,
+    color: C.text,
     marginBottom: 2,
   },
-  fieldLabel: {
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  infoLabel: {
+    fontSize: 13,
+    color: C.label,
+    fontWeight: '500',
+    flex: 1,
+  },
+  infoValue: {
+    fontSize: 13,
+    color: C.text,
+    flex: 2,
+    textAlign: 'right',
+  },
+  perspectiveLabel: {
     fontSize: 13,
     fontWeight: '500',
     color: C.label,
-    marginBottom: 4,
   },
-  input: {
-    backgroundColor: C.inputBg,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 11 : 9,
-    fontSize: 14,
+  perspectiveText: {
+    fontSize: 13,
     color: C.text,
-  },
-  inputFocused: {
-    borderColor: C.borderFocus,
-    backgroundColor: C.card,
-  },
-  inputMultiline: {
-    minHeight: 88,
-    paddingTop: 11,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  switchLabel: {
-    fontSize: 14,
-    color: C.text,
-    flex: 1,
-    paddingRight: 12,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginVertical: 2,
+    lineHeight: 20,
   },
   emptyText: {
     fontSize: 13,
     color: C.textMuted,
     fontStyle: 'italic',
   },
-  witnessBlock: {
-    gap: 8,
+  divider: {
+    height: 1,
+    backgroundColor: C.border,
+    marginVertical: 2,
   },
-  witnessBlockHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  witnessIndex: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: C.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  removeBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: C.removeBg,
-    borderRadius: 6,
-  },
-  removeBtnText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: C.removeRed,
-  },
-  fieldGap: {
-    height: 2,
-  },
-  addBtn: {
+  homeBtn: {
     backgroundColor: C.addBg,
     borderRadius: 8,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
     marginTop: 4,
   },
-  addBtnText: {
+  homeBtnText: {
     fontSize: 14,
     fontWeight: '600',
     color: C.addText,
+    letterSpacing: 0.2,
+  },
+  downloadBtn: {
+  backgroundColor: C.greenBg,
+  borderRadius: 8,
+  borderWidth: 1,
+  borderColor: C.greenBorder,
+  paddingVertical: 12,
+  alignItems: 'center',
+  },
+  downloadBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.green,
     letterSpacing: 0.2,
   },
 });

@@ -7,6 +7,14 @@ export async function saveToken(access_token: string, refresh_token: string, exp
     await AsyncStorage.setItem("expires_at", expiresAt.toString());
 }
 
+export async function saveUser(username: string) {
+    await AsyncStorage.setItem("username", username);
+}
+
+export async function getUser(){
+    return await AsyncStorage.getItem("username");
+}
+
 export async function getAccessToken(){
     return await AsyncStorage.getItem("access_token")
 }

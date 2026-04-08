@@ -18,7 +18,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/users/**").authenticated()
-                    .anyRequest().authenticated()
+                    .requestMatchers("/ws/**").authenticated()
+                    .requestMatchers("/sessions/**").authenticated()
+                    .anyRequest().denyAll()
             )
             .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));
 
