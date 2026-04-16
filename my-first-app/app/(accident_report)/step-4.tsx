@@ -5,6 +5,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { CircumstancesVehicle, useAccidentReport } from "@/context/AccidentReportContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
+import { checkIfAuthor, getUser } from "@/services/auth";
 // --- Design tokens ---
 const C = {
   bg: '#F5F4F0',
@@ -150,10 +152,23 @@ const toggleCircumstance = (key: keyof typeof circumstances) => {
 const router = useRouter();
 // --- Save Step 4 and Redirect ---
 const { selectedDriver, report, update, switchDriver } = useAccidentReport();
+const { sessionData, updateBackendSession } = useSharedAccidentReport();
 const SaveAndRedirect = async()=>{
   const totalChecked = Object.keys(circumstances).filter(key => circumstances[key as keyof CircumstancesVehicle] === true).length;
+  if(sessionData){
+    const isAuthor = await checkIfAuthor(sessionData.createdBy);
+    if(isAuthor){
+      updateBackendSession({ ...sessionData.sharedData, user1Progress:5, logs:[`${new Date()} [HOST] Step 4 completed`],
+      sender:sessionData?.createdBy, redirect : false})
+    }
+    else{
+      const user = await getUser();
+      updateBackendSession({ ...sessionData.sharedData, user2Progress:5, logs:[`${new Date()} [GUEST] Step 4 completed`],
+      sender:user, redirect : false})
+      switchDriver();
+    }
+  }
   if(selectedDriver === "driverA"){
-    console.log("driverA step4");
     update({
       driver: {
         driverA: { fullName, address, dateOfBirth:date.toDateString()},
@@ -185,13 +200,11 @@ const SaveAndRedirect = async()=>{
     });
   }
   router.push("/(accident_report)/step-5");
-  console.log("FULL DRIVER A REPORT : ",report);
 }
 return (
     <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={100}
     >
         <ScrollView 
           style={styles.screen} 
@@ -256,6 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.bg,
   },
   screenContent: {
+    paddingVertical:150,
     padding: 16,
     paddingBottom: 40,
     gap: 12,

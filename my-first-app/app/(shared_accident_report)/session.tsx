@@ -1,269 +1,211 @@
-import { JSX, useEffect, useState } from "react";
-import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ActivityIndicator, KeyboardAvoidingView,
-  Platform, ScrollView, StatusBar,
-} from "react-native";
+import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
+import { useEffect, useState } from "react";
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { useSession } from "../../hooks/useSession";
 import { getUser } from "@/services/auth";
+import { useRouter } from "expo-router";
 
-type Tab = "create" | "join";
-
-export default function SessionHomeScreen(): JSX.Element {
-  const [username, setUsername] = useState<string>("");
-  const [joinCode, setJoinCode] = useState<string>("");
-  const [tab, setTab]           = useState<Tab>("create");
-  const [userReady, setUserReady] = useState<boolean>(false);
-
-  const router  = useRouter();
-  // Only initialize session hook once username is known
-  const session = useSession(username);
-
-  useEffect(() => {
-    async function getData() {
-      const data = await getUser() ?? "";
-      setUsername(data);
-      setUserReady(true);
+export default function SessionPage() {
+    const { loadingSession, toggleLoadingSession, createSession, joinSession } = useSharedAccidentReport();
+    const [sessionType, setSessionType] = useState<string>("create");
+    const [joinCode, setJoinCode] = useState<string>("")
+    const router = useRouter();
+    // --- Handle Create Session Function ---
+    async function handleCreateSession(){
+        const user = await getUser();
+        if(!user){
+            return;
+        }
+        toggleLoadingSession();
+        const session = await createSession(user);
+        toggleLoadingSession();
+        router.push({
+            pathname:"/(shared_accident_report)/room",
+        })
     }
-    getData();
-  }, []);
-
-  const handleCreate = async (): Promise<void> => {
-    const s = await session.createSession();
-    if (s) {
-      router.push({
-        pathname: "/(shared_accident_report)/room",
-        params: { code: s.code, username },
-      });
+    // --- Handle Join Session Function ---
+    async function handleJoinSession() {
+        const user = await getUser();
+        if(!user){
+            return;
+        }
+        const session = await joinSession(joinCode,user);
+        toggleLoadingSession();
+        router.push({
+            pathname:"/(shared_accident_report)/room",
+        })
     }
-  };
-
-  const handleJoin = async (): Promise<void> => {
-    if (!joinCode.trim()) {
-      session.setError("Enter a session code.");
-      return;
-    }
-    const s = await session.joinSession(joinCode);
-    if (s) {
-      router.push({
-        pathname: "/(shared_accident_report)/room",
-        params: { code: s.code, username },
-      });
-    }
-  };
-
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <StatusBar barStyle="light-content" />
-      <LinearGradient colors={["#050810", "#0a0f1e", "#050810"]} style={{ flex: 1 }}>
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={s.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+    return (
+        <LinearGradient
+            colors={['#1a1740', '#2d2870', '#1a1740']}
+            start={{ x: 0.1, y: 0 }}
+            end={{ x: 0.9, y: 1 }}
+            style={{ flex: 1 }}
         >
-          {/* Header */}
-          <View style={s.header}>
-            <View style={s.pill}>
-              <Text style={s.pillTxt}>LIVE</Text>
-            </View>
-            <Text style={s.title}>LiveLink</Text>
-            <Text style={s.sub}>Real-time sessions between two users</Text>
-          </View>
-
-          {/* User badge */}
-          <View style={s.userBadge}>
-            <View style={s.avatar}>
-              <Text style={s.avatarTxt}>{username ? username[0].toUpperCase() : "U"}</Text>
-            </View>
-            <Text style={s.usernameLabel}>{username || "Loading..."}</Text>
-          </View>
-
-          {/* Tab switcher */}
-          <View style={s.tabs}>
-            <TouchableOpacity
-              style={[s.tab, tab === "create" && s.tabActive]}
-              onPress={() => setTab("create")}
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
-              <Text style={[s.tabTxt, tab === "create" && s.tabTxtActive]}>Create</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[s.tab, tab === "join" && s.tabActive]}
-              onPress={() => setTab("join")}
-            >
-              <Text style={[s.tabTxt, tab === "join" && s.tabTxtActive]}>Join</Text>
-            </TouchableOpacity>
-          </View>
+                <ScrollView
+                    style={ styles.container }
+                    contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+                >
+                    <Text style={ styles.title }>Live Link</Text>
+                    <Text style={ styles.subtitle }>Users in session</Text>
 
-          {/* Error */}
-          {!!session.error && (
-            <View style={s.errorBox}>
-              <Text style={s.errorTxt}>{session.error}</Text>
-            </View>
-          )}
+                    <View style={ styles.card }>
+                        <View style={ styles.header }>
+                            <TouchableOpacity
+                                style={[styles.tab, sessionType === "create" && styles.tabActive]}
+                                onPress={() => setSessionType("create")}
+                            >
+                                <Text style={[styles.tabText, sessionType === "create" && styles.tabTextActive]}>
+                                    Create Session
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.tab, sessionType === "join" && styles.tabActive]}
+                                onPress={() => setSessionType("join")}
+                            >
+                                <Text style={[styles.tabText, sessionType === "join" && styles.tabTextActive]}>
+                                    Join Session
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
 
-          {/* Create card */}
-          {tab === "create" && (
-            <View style={s.card}>
-              <Text style={s.cardTitle}>Start a new session</Text>
-              <Text style={s.cardDesc}>
-                A unique code will be generated. Share it with the other user so
-                they can join your session instantly.
-              </Text>
-              <TouchableOpacity
-                style={[s.primaryBtn, (!userReady || session.loading) && s.btnDisabled]}
-                onPress={handleCreate}
-                disabled={!userReady || session.loading}
-                activeOpacity={0.8}
-              >
-                {session.loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={s.primaryBtnTxt}>＋  Create Session</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
+                        {sessionType === "create" && (
+                            <View style={ styles.cardChild }>
+                                <Text style={ styles.cardLabel }>Start a new session and share the code with the other user.</Text>
+                                <TouchableOpacity disabled={loadingSession} onPress={handleCreateSession} style={ styles.button }>
+                                    <Text style={ styles.buttonText }>{loadingSession ? "Loading":"Create Session"}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
 
-          {/* Join card */}
-          {tab === "join" && (
-            <View style={s.card}>
-              <Text style={s.cardTitle}>Join existing session</Text>
-              <Text style={s.cardDesc}>
-                Enter the 6-character code shared by the other user.
-              </Text>
-              <TextInput
-                style={s.codeInput}
-                placeholder="ABC-123"
-                placeholderTextColor="#3d4a5c"
-                value={joinCode}
-                onChangeText={(t: string) => setJoinCode(t.toUpperCase())}
-                autoCapitalize="characters"
-                maxLength={7}
-              />
-              <TouchableOpacity
-                style={[s.primaryBtn, (!userReady || session.loading) && s.btnDisabled]}
-                onPress={handleJoin}
-                disabled={!userReady || session.loading}
-                activeOpacity={0.8}
-              >
-                {session.loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={s.primaryBtnTxt}>→  Join Session</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-        </ScrollView>
-      </LinearGradient>
-    </KeyboardAvoidingView>
-  );
+                        {sessionType === "join" && (
+                            <View style={ styles.cardChild }>
+                                <Text style={ styles.cardLabel }>Enter a session code to join an existing session.</Text>
+                                <TextInput
+                                    style={styles.codeInput}
+                                    placeholder="ABC-123"
+                                    placeholderTextColor="#3d4a5c"
+                                    value={joinCode}
+                                    onChangeText={(t: string) => setJoinCode(t.toUpperCase())}
+                                    autoCapitalize="characters"
+                                    maxLength={7}
+                                />
+                                <TouchableOpacity onPress={handleJoinSession} style={ styles.button }>
+                                    <Text style={ styles.buttonText }>Join Session</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </LinearGradient>
+    );
 }
 
-const ACCENT  = "#6366f1";
-const ACCENT2 = "#10b981";
-
-const s = StyleSheet.create({
-  scroll: {
-    flexGrow: 1,
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 60,
+    },
+    title: {
+        color: "#ffffff",
+        fontSize: 32,
+        fontWeight: "700",
+        textAlign: "center",
+        letterSpacing: 0.5,
+        marginBottom: 4,
+    },
+    subtitle: {
+        color: "rgba(255,255,255,0.5)",
+        fontSize: 14,
+        textAlign: "center",
+        marginBottom: 32,
+        letterSpacing: 0.3,
+    },
+    card: {
+        backgroundColor: "#ffffff",
+        marginHorizontal: 4,
+        borderRadius: 20,
+        padding: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        elevation: 6,
+    },
+    header: {
+        flexDirection: "row",
+        backgroundColor: "#f0eeff",
+        borderRadius: 12,
+        padding: 4,
+        marginBottom: 20,
+    },
+    tab: {
+        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 10,
+        alignItems: "center",
+    },
+    tabActive: {
+        backgroundColor: "#5447cc",
+        shadowColor: "#5447cc",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    tabText: {
+        color: "#5447cc",
+        fontWeight: "600",
+        fontSize: 14,
+    },
+    tabTextActive: {
+        color: "#ffffff",
+    },
+    cardChild: {
+        marginTop: 4,
+    },
+    cardLabel: {
+        color: "#888",
+        fontSize: 14,
+        marginBottom: 8,
+        lineHeight: 20,
+    },
+    button: {
+        marginTop: 16,
+        backgroundColor: "#5447cc",
+        paddingVertical: 14,
+        borderRadius: 14,
+        alignItems: "center",
+        shadowColor: "#5447cc",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    buttonText: {
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: 16,
+        letterSpacing: 0.3,
+    },
+    codeInput: {
+        backgroundColor: "#f1f5f9",
+        borderWidth: 1,
+        borderColor: "#1e2740",
+        borderRadius: 12,
+        paddingHorizontal: 18,
+        paddingVertical: 16,
+        color: "#060c18",
+        fontSize: 22,
+        fontWeight: "700",
+        letterSpacing: 6,
+        textAlign: "center",
   },
-
-  header:   { alignItems: "center", marginTop: 80, marginBottom: 32 },
-  pill: {
-    backgroundColor: "#1a1f35",
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: "#2a3050",
-  },
-  pillTxt:  { color: ACCENT2, fontSize: 11, fontWeight: "700", letterSpacing: 3 },
-  title:    { fontSize: 38, fontWeight: "800", color: "#f1f5f9", letterSpacing: -1 },
-  sub:      { color: "#475569", fontSize: 14, marginTop: 6, textAlign: "center" },
-
-  userBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: "#0d1220",
-    borderRadius: 30,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "#1e2740",
-    marginBottom: 28,
-  },
-  avatar: {
-    width: 30, height: 30, borderRadius: 15,
-    backgroundColor: ACCENT,
-    alignItems: "center", justifyContent: "center",
-  },
-  avatarTxt:     { color: "#fff", fontWeight: "700", fontSize: 14 },
-  usernameLabel: { color: "#94a3b8", fontSize: 14, fontWeight: "500" },
-
-  tabs: {
-    flexDirection: "row",
-    backgroundColor: "#0d1220",
-    borderRadius: 12,
-    padding: 4,
-    width: "100%",
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#1e2740",
-  },
-  tab:          { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: "center" },
-  tabActive:    { backgroundColor: "#1a2540" },
-  tabTxt:       { color: "#475569", fontWeight: "600", fontSize: 14 },
-  tabTxtActive: { color: "#f1f5f9" },
-
-  errorBox: {
-    backgroundColor: "#1c0b0b",
-    borderWidth: 1,
-    borderColor: "#7f1d1d",
-    borderRadius: 10,
-    padding: 12,
-    width: "100%",
-    marginBottom: 12,
-  },
-  errorTxt: { color: "#f87171", fontSize: 13 },
-
-  card: {
-    width: "100%",
-    backgroundColor: "#0d1220",
-    borderRadius: 18,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "#1e2740",
-    gap: 14,
-  },
-  cardTitle: { color: "#f1f5f9", fontSize: 18, fontWeight: "700" },
-  cardDesc:  { color: "#475569", fontSize: 13, lineHeight: 20 },
-
-  codeInput: {
-    backgroundColor: "#060c18",
-    borderWidth: 1,
-    borderColor: "#1e2740",
-    borderRadius: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    color: "#f1f5f9",
-    fontSize: 22,
-    fontWeight: "700",
-    letterSpacing: 6,
-    textAlign: "center",
-  },
-
-  primaryBtn:    { backgroundColor: ACCENT, borderRadius: 12, paddingVertical: 16, alignItems: "center" },
-  primaryBtnTxt: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  btnDisabled:   { opacity: 0.5 },
 });

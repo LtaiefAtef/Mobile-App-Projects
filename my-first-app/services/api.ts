@@ -7,19 +7,16 @@ const { debuggerHost } = Constants.expoConfig?.hostUri
   : { debuggerHost: "localhost" };
 
 export const API_URL = `http://${debuggerHost}:8081`;
-console.log("API URL set to:", API_URL);
 // Get Token function
 export async function getToken(): Promise<string | null> {
     const token = await getAccessToken();
     if (!token) {
-        console.log("Token is not there");
         router.replace("/login");
         return null;
     }
 
     const expiresAt = await getTokenExpirationDate();
     if (!expiresAt || Date.now() > expiresAt) {
-        console.log("GETTING REFRESH TOKEN")
         const refreshToken = await getRefreshToken();
         const res = await fetch(`${API_URL}/auth/refresh`, {
             method: "POST",
@@ -28,8 +25,6 @@ export async function getToken(): Promise<string | null> {
         });
 
         if (!res.ok) {
-            console.log("Couldnt get refresh token");
-            console.log("Result Statu ", res);
             await logout();
             router.replace("/login");
             throw new Error('Session Expired');
@@ -54,7 +49,6 @@ export async function loginRequest(username:string, password:string){
         }),
     });
     if(!res.ok){
-        console.log("Login failed with status", res.status, res.statusText);
         throw new Error("Login failed");
     }
     const data = await res.json();
@@ -69,7 +63,6 @@ export async function signupRequest({ prename, familyName, username, phoneNumber
   email: string;
   password: string;
 }){
-    console.log("Sending signup request with data:", { prename, familyName, username, phoneNumber, email, password });
   const res = await fetch(`${API_URL}/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -102,8 +95,6 @@ export async function getUserInfo(token: string) {
 
 export async function getUserContract(contractNumber: string|undefined) {
   const token = await getToken();
-  console.log(token);
-  console.log("THIS IS USER TOKEN TO GET CONTRACT API.TS LINE 109 ");
   const res = await fetch(`${API_URL}/users/contracts`,{
     method:"POST",
     headers: {

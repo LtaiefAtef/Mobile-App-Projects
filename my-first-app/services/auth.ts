@@ -23,6 +23,9 @@ export async function getRefreshToken(){
     return await AsyncStorage.getItem("refresh_token");
 }
 
+export async function checkIfAuthor(user :string) {
+    return await AsyncStorage.getItem("username") == user;
+}
 export async function getTokenExpirationDate(): Promise<number | null> {
     const expiresAt = await AsyncStorage.getItem("expires_at");
     if (!expiresAt) return null;

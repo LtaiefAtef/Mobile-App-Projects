@@ -1,4 +1,6 @@
 import { Contract } from "@/constants/appData";
+import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
+import { checkIfAuthor, getUser } from "@/services/auth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   KeyboardAvoidingView,
@@ -10,7 +12,6 @@ import {
   View,
 } from "react-native";
 
-// --- Design tokens ---
 const C = {
   bg: "#F5F4F0",
   card: "#FFFFFF",
@@ -24,8 +25,6 @@ const C = {
   inputBg: "#FAFAF8",
   disabledBg: "#F0EFE9",
 };
-
-// --- Sub-components ---
 
 const SectionTitle = ({ children }: { children: string }) => (
   <Text style={styles.sectionTitle}>{children}</Text>
@@ -43,12 +42,9 @@ const ReadonlyField = ({ value }: { value?: string }) => (
 
 const Divider = () => <View style={styles.divider} />;
 
-// --- Main component ---
-
 export default function Step3() {
   const { contract } = useLocalSearchParams<{ contract: string }>();
   const userContract: Contract = JSON.parse(contract);
-  console.log("Received contract:", userContract);
   const router = useRouter();
 
   const fields: { label: string; value?: string }[] = [
@@ -60,14 +56,43 @@ export default function Step3() {
     { label: "Status", value: userContract?.status },
     { label: "Start Date", value: userContract?.startDate },
     { label: "End Date", value: userContract?.endDate },
-    { label: "Payment Method", value: userContract?.paymentMethod}
+    { label: "Payment Method", value: userContract?.paymentMethod },
   ];
+
+  const { sessionData, updateBackendSession } = useSharedAccidentReport();
+
+  async function saveAndRedirect() {
+    if (sessionData) {
+      const isAuthor = await checkIfAuthor(sessionData?.createdBy);
+      if (isAuthor) {
+        updateBackendSession({
+          ...sessionData?.sharedData,
+          user1Progress: 4,
+          logs: [`${new Date()} [HOST] Step 3 completed`],
+          sender: sessionData?.createdBy,
+          redirect: false,
+        });
+      } else {
+        const user = await getUser();
+        updateBackendSession({
+          ...sessionData?.sharedData,
+          user2Progress: 4,
+          logs: [`${new Date()} [GUEST] Step 3 completed`],
+          sender: user,
+          redirect: false,
+        });
+      }
+    }
+    router.push({
+      pathname: "/(accident_report)/step-4",
+      params: { contract: JSON.stringify(contract) },
+    });
+  }
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={100}
     >
       <ScrollView
         style={styles.screen}
@@ -92,12 +117,7 @@ export default function Step3() {
         <TouchableOpacity
           style={styles.nextBtn}
           activeOpacity={0.8}
-          onPress={() =>
-            router.push({
-              pathname: "/(accident_report)/step-4",
-              params: { contract: JSON.stringify(contract) },
-            })
-          }
+          onPress={saveAndRedirect}
         >
           <Text style={styles.nextBtnText}>Next</Text>
         </TouchableOpacity>
@@ -105,8 +125,6 @@ export default function Step3() {
     </KeyboardAvoidingView>
   );
 }
-
-// --- Styles ---
 
 const styles = StyleSheet.create({
   screen: {
@@ -117,6 +135,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
     gap: 12,
+    paddingVertical: 150,
   },
   pageTitle: {
     fontSize: 25,

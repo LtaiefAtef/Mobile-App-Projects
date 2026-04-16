@@ -269,8 +269,8 @@ const defaultReport: ReportData = {
   },
   sketchImageUrl: "",
   signatures: {
-    vehicleA: { signed: false, signedAt: "" },
-    vehicleB: { signed: false, signedAt: "" },
+    vehicleA: { signed: false, signedAt: "", svgData:"" },
+    vehicleB: { signed: false, signedAt: "", svgData:"" },
   },
   accidentPerspective: {
     driverA: "",

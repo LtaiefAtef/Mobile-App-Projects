@@ -1,4 +1,7 @@
+import { SessionState } from "@/constants/appData";
 import { useAccidentReport } from "@/context/AccidentReportContext";
+import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
+import { checkIfAuthor, getUser } from "@/services/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
@@ -98,21 +101,35 @@ export default function Step5(): React.JSX.Element {
 
   const toggleAgreed = (): void => setAgreed((prev: boolean) => !prev);
 //  --- Saving Signature and redirecting to next step ---
-    const {report, update, selectedDriver, switchDriver} = useAccidentReport();
+    const { report, update, selectedDriver, switchDriver } = useAccidentReport();
+    const { sessionData, updateBackendSession } = useSharedAccidentReport();
     const router = useRouter();
     const saveAndRedirect = async() => {
-        console.log("Saving signature for", selectedDriver);
+        const svgData = buildSvgString(paths, 350, 420);
+        if(sessionData){
+          const isAuthor = await checkIfAuthor(sessionData.createdBy);
+          if(isAuthor){
+            update({ signatures: { vehicleA: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
+            updateBackendSession({ ...sessionData.sharedData, user1Progress:6,
+            sender:sessionData?.createdBy, report, redirect : false } as SessionState)
+          }else{
+            const user = await getUser();
+            update({ signatures: { vehicleB: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
+            updateBackendSession({ ...sessionData.sharedData, user2Progress:6,
+            sender:user, report, redirect : false, } as SessionState)
+          }
+          await AsyncStorage.setItem('@accident_report', JSON.stringify(report));
+          router.push("/(accident_report)/sheet");
+          return;
+        }
         if(selectedDriver === "driverA"){
-            const svgData = buildSvgString(paths, 350, 420);
             update({ signatures: { vehicleA: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
             switchDriver();
             router.push("/(accident_report)/step-2");
         }else{
-            const svgData = buildSvgString(paths, 350, 420);
             update({ signatures: { vehicleB: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
             try {
                 await AsyncStorage.setItem('@accident_report', JSON.stringify(report));
-                console.log("Report saved successfully");
                 router.push("/(accident_report)/sheet");
             } catch (e) {
                 console.error("Failed to save report:", e);
@@ -123,7 +140,6 @@ export default function Step5(): React.JSX.Element {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={100}
     >
       <ScrollView
         style={styles.screen}

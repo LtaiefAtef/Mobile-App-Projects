@@ -14,6 +14,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useAccidentReport } from '@/context/AccidentReportContext';
+import { useSharedAccidentReport } from '@/context/SharedAccidentReportContext';
+import { SessionState } from '@/constants/appData';
 
 // --- Types ---
 type Witness = {
@@ -159,28 +161,46 @@ export default function Step1() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
-  // --- Location ---
-  const getLocation = async () => {
-    setLocationLoading(true);
-    setForm(f => ({ ...f, address: 'Locating...' }));
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      setErrorMsg('Permission denied');
-      setForm(f => ({ ...f, address: '' }));
-      setLocationLoading(false);
-      return;
-    }
-    const loc = await Location.getCurrentPositionAsync({});
-    const places = await Location.reverseGeocodeAsync({
-      latitude: loc.coords.latitude,
-      longitude: loc.coords.longitude,
-    });
-    if (places.length > 0) {
-      const place = places[0];
-      setForm(f => ({ ...f, address: place.formattedAddress ?? '' }));
-    }
+// --- Location ---
+const getLocation = async () => {
+  setLocationLoading(true);
+  setForm(f => ({ ...f, address: 'Locating...' }));
+
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== 'granted') {
+    setErrorMsg('Permission denied');
+    setForm(f => ({ ...f, address: '' }));
     setLocationLoading(false);
-  };
+    return;
+  }
+
+  let loc = await Location.getCurrentPositionAsync({
+    accuracy: Location.Accuracy.Lowest,
+  }).catch(() => null);
+
+  if (!loc) {
+    loc = await Location.getLastKnownPositionAsync({});
+  }
+
+  if (!loc) {
+    setErrorMsg('Could not get location. Make sure GPS is enabled.');
+    setForm(f => ({ ...f, address: '' }));
+    setLocationLoading(false);
+    return;
+  }
+
+  const places = await Location.reverseGeocodeAsync({
+    latitude: loc.coords.latitude,
+    longitude: loc.coords.longitude,
+  });
+
+  if (places.length > 0) {
+    const place = places[0];
+    setForm(f => ({ ...f, address: place.formattedAddress ?? '' }));
+  }
+
+  setLocationLoading(false);
+};
 
   // --- Date ---
   const changeDate = (_: any, selectedDate?: Date | null) => {
@@ -229,17 +249,21 @@ export default function Step1() {
     }));
   // --- Save step 1 and redirect to step 2 ---
   const { report, update} = useAccidentReport();
-  const saveAndRedirect = () => {
+  const { sessionData, updateSession, updateBackendSession } = useSharedAccidentReport();
+  const saveAndRedirect = async() => {
     update({accidentDate:form.accidentDate.toDateString(), submittedAt:new Date().toDateString() ,accidentLocation:form.address, injuries:form.injuries, witnesses:form.witnesses,
-       otherVehiclesDamaged: { otherVehicleInvolved:form.otherVehiclesDamaged.otherVehicleInvolved, numberOfVehicles: Number(form.otherVehiclesDamaged.numberOfVehicles) }})
-    console.log("Data saved step 1");
+      otherVehiclesDamaged: { otherVehicleInvolved:form.otherVehiclesDamaged.otherVehicleInvolved, numberOfVehicles: Number(form.otherVehiclesDamaged.numberOfVehicles) }})
+    if(sessionData){
+      updateBackendSession({ ...sessionData.sharedData, user1Progress:2,sender:sessionData?.createdBy, 
+        redirect:false } as SessionState)
+    }
     router.push({ pathname: "/(accident_report)/step-2" });
+    
   }
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1 , marginTop: 120 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={100}
     >
       <ScrollView
         style={styles.screen}
@@ -248,11 +272,9 @@ export default function Step1() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.pageTitle}>Accident Info</Text>
-
         {/* ── Shared Info ── */}
         <View style={styles.card}>
           <SectionTitle>Shared Info</SectionTitle>
-
           {/* Location */}
           <FieldLabel>Accident location</FieldLabel>
           <View style={styles.locationRow}>
@@ -421,6 +443,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
     gap: 12,
+    paddingTop:25,
   },
   pageTitle: {
     fontSize: 25,

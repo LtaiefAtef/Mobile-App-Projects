@@ -470,3 +470,227 @@
  Location : dada
  Error    : Session is active
 ------------------------------>
+
+==============================
+ Error Joining the session
+ Date: 2026-04-09 19:43:23
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-10 18:25:21
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-11 09:27:16
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : I/O error on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": An established connection was aborted by the software in your host machine
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-11 16:05:10
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: null
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-11 16:07:12
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: null
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-11 16:26:53
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Refresh Error
+ Date: 2026-04-11 20:39:56
+==============================
+ Location : AuthService.java
+ Error    : 400 Bad Request: "{"error":"invalid_grant","error_description":"Token is not active"}"
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-11 20:51:51
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-12 09:55:13
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-12 09:55:15
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-12 18:23:17
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-14 08:40:21
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : I/O error on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": Connection refused: connect
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-14 08:44:04
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : I/O error on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": Connection refused: connect
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-14 09:39:45
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-14 18:07:43
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session is not active.
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-14 18:23:02
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-14 19:43:48
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session is not active.
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-14 19:43:48
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session is not active.
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-14 21:30:04
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-15 18:19:37
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : I/O error on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": Connection refused: connect
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-15 18:20:44
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : I/O error on POST request for "http://localhost:8080/realms/mobile-realm/protocol/openid-connect/token": An established connection was aborted by the software in your host machine
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-15 18:47:17
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-15 19:02:06
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Error Joining the session
+ Date: 2026-04-15 20:34:12
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-15 21:04:39
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-15 21:04:58
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Error Joining the session
+ Date: 2026-04-15 21:05:28
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-16 15:18:47
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>

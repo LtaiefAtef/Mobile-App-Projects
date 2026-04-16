@@ -58,19 +58,18 @@ public class SessionService {
 
             session.getParticipants().add(request.getUsername());
             session.setStatus(SessionStatus.ACTIVE);
-            BackendLogger.logError("SESSION STATUS IS ACTIVE", "dada", new IllegalStateException("Session is active"));
             session.setUpdatedAt(Instant.now());
             Session saved = sessionRepository.save(session);
 
             // Notify all subscribers on this session topic
             broadcast(saved.getCode(), SessionMessage.builder()
-                    .type(SessionMessage.Type.USER_JOINED)
-                    .sender(request.getUsername())
-                    .sessionCode(saved.getCode())
-                    .payload(request.getUsername() + " joined the session")
-                    .timestamp(System.currentTimeMillis())
-                    .build());
-
+            .type(SessionMessage.Type.USER_JOINED)
+            .sender(request.getUsername())
+            .sessionCode(saved.getCode())
+            .payload(request.getUsername() + " joined the session")
+            .timestamp(System.currentTimeMillis())
+            .build());
+            
             return saved;
         }catch (Exception e){
             BackendLogger.logError("Error Joining the session", "backend\\src\\main\\java\\com\\auth\\backend\\service\\SessionService.java", e);
@@ -93,15 +92,6 @@ public class SessionService {
             session.setSharedData(request.getSharedData());
             session.setUpdatedAt(Instant.now());
             Session saved = sessionRepository.save(session);
-
-            broadcast(saved.getCode(), SessionMessage.builder()
-                    .type(SessionMessage.Type.DATA_UPDATE)
-                    .sender(request.getUsername())
-                    .sessionCode(saved.getCode())
-                    .payload(request.getSharedData())
-                    .timestamp(System.currentTimeMillis())
-                    .build());
-
             return saved;
 
         }catch(Exception e){
@@ -131,7 +121,6 @@ public class SessionService {
     }
 
     // ─── Get session ──────────────────────────────────────────────────────────
-
     public Session getSession(String code) {
         return sessionRepository.findByCode(code)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + code));

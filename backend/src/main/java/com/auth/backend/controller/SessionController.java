@@ -47,7 +47,6 @@ public class SessionController {
     public ResponseEntity<Session> joinSession(@RequestBody JoinSessionRequest request) {
         System.out.println("User " + request.getUsername() + " joining session: " + request.getCode());
         Session session = sessionService.joinSession(request);
-        broadcast(session.getCode(), SessionMessage.Type.USER_JOINED, request.getUsername(), request.getUsername() + " joined");
         return ResponseEntity.ok(session);
     }
 
@@ -59,7 +58,7 @@ public class SessionController {
         broadcast(session.getCode(), SessionMessage.Type.DATA_UPDATE, request.getUsername(), request.getSharedData());
         return ResponseEntity.ok(session);
     }
-
+    
     /** DELETE /sessions/{code}/leave?username=alice */
     @DeleteMapping("/{code}/leave")
     public ResponseEntity<Void> leaveSession(@PathVariable String code, @RequestParam String username) {

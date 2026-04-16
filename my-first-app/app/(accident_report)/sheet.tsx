@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,9 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAccidentReport } from '@/context/AccidentReportContext';
+import { useSharedAccidentReport } from '@/context/SharedAccidentReportContext';
+import { checkIfAuthor } from '@/services/auth';
 
-// --- Design tokens ---
 const C = {
   bg: '#F5F4F0',
   card: '#FFFFFF',
@@ -26,7 +27,6 @@ const C = {
   greenBorder: '#4CAF50',
 };
 
-// --- Sub-components ---
 const Divider = () => <View style={styles.divider} />;
 
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
@@ -36,20 +36,61 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
   </View>
 );
 
-// --- Main ---
 export default function SuccessPage() {
   const router = useRouter();
-  const { report, downloadReport } = useAccidentReport();
-  const [showReport, setShowReport] = React.useState(false);
-
+  const { report, downloadReport, update } = useAccidentReport();
+  const [showReport, setShowReport] = useState(false);
+  const [frame, setFrame] = useState(true);
+  const [waitingForOtherParty, setWaitingForOtherParty] = useState(true);
+  const { sessionData, reportRef } = useSharedAccidentReport();
+  useEffect(() => {
+    async function wait(){
+      if (sessionData) {
+          console.log("Report Ref",reportRef);
+          const isAuthor = await checkIfAuthor(sessionData.createdBy);
+          // console.log("Session Data", JSON.stringify(sessionData, null, 2));
+          // console.log("REPORT",JSON.stringify(report, null, 2));
+          if(sessionData.sharedData.user1Progress == 6 && sessionData.sharedData.user2Progress == 6){
+            setWaitingForOtherParty(false);
+          }
+          if(!isAuthor){
+            update({
+              accidentDate:reportRef.current.accidentDate,
+              accidentLocation:reportRef.current.accidentLocation,
+              injuries:{ ...reportRef.current.injuries },
+              otherVehiclesDamaged:{...reportRef.current.otherVehiclesDamaged},
+              witnesses:[...(reportRef.current.witnesses ?? [])],
+              driver:{ driverA:reportRef.current.driver.driverA },
+              insuranceCompany:{ vehicleA:reportRef.current.insuranceCompany.vehicleA },
+              visibiledamage:{ vehicleA:reportRef.current.visibiledamage.vehicleA },
+              circumstances:{ vehicleA:reportRef.current.circumstances.vehicleA },
+              signatures:{ vehicleA:reportRef.current.signatures.vehicleA }
+            });
+          }else{
+            update({
+              driver: { driverB: reportRef.current.driver.driverB },
+              insuranceCompany: { vehicleB: reportRef.current.insuranceCompany.vehicleB },
+              visibiledamage: { vehicleB: reportRef.current.visibiledamage.vehicleB },
+              circumstances: { vehicleB: reportRef.current.circumstances.vehicleB },
+              signatures: { vehicleB: reportRef.current.signatures.vehicleB },
+            });
+          }
+        setFrame(false);
+        if(sessionData.sharedData.user1Progress == 6 && sessionData.sharedData.user2Progress == 6){
+          setWaitingForOtherParty(false);
+        }
+      }
+    }
+    wait()
+  }, [sessionData]);
+useEffect(()=>{},[report]);
   return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.screenContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* ── Success Banner ── */}
-      <View style={styles.banner}>
+      {frame && <View style={styles.banner}>
         <View style={styles.iconCircle}>
           <Text style={styles.iconText}>✓</Text>
         </View>
@@ -58,102 +99,98 @@ export default function SuccessPage() {
           Your accident report has been successfully submitted.
         </Text>
         <Text style={styles.bannerDate}>
-          Submitted on {report.submittedAt || new Date().toLocaleDateString('fr-TN')}
+          Submitted on {report.submittedAt ?? new Date().toLocaleDateString('fr-TN')}
         </Text>
-      </View>
+      </View>}
 
-      {/* ── View Full Report toggle ── */}
       <TouchableOpacity
         style={styles.toggleReportBtn}
         onPress={() => setShowReport(v => !v)}
         activeOpacity={0.8}
       >
         <Text style={styles.toggleReportBtnText}>
-          {showReport ? 'Hide Report ↑' : 'View Full Report ↓'}
+          {!frame && !waitingForOtherParty ? showReport ? 'Hide Report ↑' : 'View Full Report ↓' : "Waiting For Other Party" }
+          {!sessionData && (showReport ? 'Hide Report ↑' : 'View Full Report ↓')}
         </Text>
       </TouchableOpacity>
 
-      {showReport && (
+      {showReport && !waitingForOtherParty && (
         <>
-          {/* ── Accident Info ── */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Accident Info</Text>
-            <InfoRow label="Date" value={report.accidentDate || '—'} />
+            <InfoRow label="Date" value={report.accidentDate ?? '—'} />
             <Divider />
-            <InfoRow label="Location" value={report.accidentLocation || '—'} />
+            <InfoRow label="Location" value={report.accidentLocation ?? '—'} />
             <Divider />
             <InfoRow
               label="Injuries"
-              value={report.injuries.anyInjuries
-                ? report.injuries.injuryDetails || 'Yes'
+              value={report.injuries?.anyInjuries
+                ? report.injuries?.injuryDetails ?? 'Yes'
                 : 'None'}
             />
             <Divider />
             <InfoRow
               label="Other vehicles"
-              value={report.otherVehiclesDamaged.otherVehicleInvolved
-                ? `${report.otherVehiclesDamaged.numberOfVehicles} vehicle(s)`
+              value={report.otherVehiclesDamaged?.otherVehicleInvolved
+                ? `${report.otherVehiclesDamaged?.numberOfVehicles} vehicle(s)`
                 : 'None'}
             />
           </View>
 
-          {/* ── Driver A ── */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Driver A</Text>
-            <InfoRow label="Name" value={report.driver.driverA.fullName || '—'} />
+            <InfoRow label="Name" value={report.driver?.driverA?.fullName ?? '—'} />
             <Divider />
-            <InfoRow label="Address" value={report.driver.driverA.address || '—'} />
+            <InfoRow label="Address" value={report.driver?.driverA?.address ?? '—'} />
             <Divider />
-            <InfoRow label="Date of Birth" value={report.driver.driverA.dateOfBirth || '—'} />
+            <InfoRow label="Date of Birth" value={report.driver?.driverA?.dateOfBirth ?? '—'} />
             <Divider />
-            <InfoRow label="License" value={report.driver.driverA.license || '—'} />
+            <InfoRow label="License" value={report.driver?.driverA?.license ?? '—'} />
             <Divider />
-            <InfoRow label="Insurance" value={report.insuranceCompany.vehicleA.companyName || '—'} />
+            <InfoRow label="Insurance" value={report.insuranceCompany?.vehicleA?.companyName ?? '—'} />
             <Divider />
-            <InfoRow label="Contract No." value={report.insuranceCompany.vehicleA.contractNumber || '—'} />
+            <InfoRow label="Contract No." value={report.insuranceCompany?.vehicleA?.contractNumber ?? '—'} />
             <Divider />
-            <InfoRow label="Visible Damage" value={report.visibiledamage.vehicleA || '—'} />
+            <InfoRow label="Visible Damage" value={report.visibiledamage?.vehicleA ?? '—'} />
             <Divider />
             <InfoRow
               label="Circumstances"
-              value={`${report.circumstances.vehicleA.totalChecked} checked`}
+              value={`${report.circumstances?.vehicleA?.totalChecked ?? 0} checked`}
             />
           </View>
 
-          {/* ── Driver B ── */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Driver B</Text>
-            <InfoRow label="Name" value={report.driver.driverB.fullName || '—'} />
+            <InfoRow label="Name" value={report.driver?.driverB?.fullName ?? '—'} />
             <Divider />
-            <InfoRow label="Address" value={report.driver.driverB.address || '—'} />
+            <InfoRow label="Address" value={report.driver?.driverB?.address ?? '—'} />
             <Divider />
-            <InfoRow label="Date of Birth" value={report.driver.driverB.dateOfBirth || '—'} />
+            <InfoRow label="Date of Birth" value={report.driver?.driverB?.dateOfBirth ?? '—'} />
             <Divider />
-            <InfoRow label="License" value={report.driver.driverB.license || '—'} />
+            <InfoRow label="License" value={report.driver?.driverB?.license ?? '—'} />
             <Divider />
-            <InfoRow label="Insurance" value={report.insuranceCompany.vehicleB.companyName || '—'} />
+            <InfoRow label="Insurance" value={report.insuranceCompany?.vehicleB?.companyName ?? '—'} />
             <Divider />
-            <InfoRow label="Contract No." value={report.insuranceCompany.vehicleB.contractNumber || '—'} />
+            <InfoRow label="Contract No." value={report.insuranceCompany?.vehicleB?.contractNumber ?? '—'} />
             <Divider />
-            <InfoRow label="Visible Damage" value={report.visibiledamage.vehicleB || '—'} />
+            <InfoRow label="Visible Damage" value={report.visibiledamage?.vehicleB ?? '—'} />
             <Divider />
             <InfoRow
               label="Circumstances"
-              value={`${report.circumstances.vehicleB.totalChecked} checked`}
+              value={`${report.circumstances?.vehicleB?.totalChecked ?? 0} checked`}
             />
           </View>
 
-          {/* ── Witnesses ── */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Witnesses</Text>
-            {report.witnesses.length === 0 ? (
+            {(report.witnesses?.length ?? 0) === 0 ? (
               <Text style={styles.emptyText}>No witnesses.</Text>
             ) : (
-              report.witnesses.map((w, i) => (
+              report.witnesses?.map((w, i) => (
                 <View key={i}>
                   {i > 0 && <Divider />}
-                  <InfoRow label={`Witness ${i + 1}`} value={w.full_name || '—'} />
-                  <InfoRow label="Address" value={w.address || '—'} />
+                  <InfoRow label={`Witness ${i + 1}`} value={w.full_name ?? '—'} />
+                  <InfoRow label="Address" value={w.address ?? '—'} />
                   <InfoRow
                     label="Passenger"
                     value={w.isPassangerOfVehicle ? 'Yes' : 'No'}
@@ -163,65 +200,68 @@ export default function SuccessPage() {
             )}
           </View>
 
-          {/* ── Perspectives ── */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Accident Perspective</Text>
             <Text style={styles.perspectiveLabel}>Driver A</Text>
             <Text style={styles.perspectiveText}>
-              {report.accidentPerspective.driverA || '—'}
+              {report.accidentPerspective?.driverA ?? '—'}
             </Text>
             <Divider />
             <Text style={styles.perspectiveLabel}>Driver B</Text>
             <Text style={styles.perspectiveText}>
-              {report.accidentPerspective.driverB || '—'}
+              {report.accidentPerspective?.driverB ?? '—'}
             </Text>
           </View>
 
-          {/* ── Signatures ── */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Signatures</Text>
             <InfoRow
               label="Vehicle A"
-              value={report.signatures.vehicleA.signed
-                ? `Signed on ${report.signatures.vehicleA.signedAt}`
+              value={report.signatures?.vehicleA?.signed
+                ? `Signed on ${report.signatures?.vehicleA?.signedAt}`
                 : 'Not signed'}
             />
             <Divider />
             <InfoRow
               label="Vehicle B"
-              value={report.signatures.vehicleB.signed
-                ? `Signed on ${report.signatures.vehicleB.signedAt}`
+              value={report.signatures?.vehicleB?.signed
+                ? `Signed on ${report.signatures?.vehicleB?.signedAt}`
                 : 'Not signed'}
             />
           </View>
-          {/* ── Download Button ── */}
-          <TouchableOpacity
+          { frame && <TouchableOpacity
             style={styles.downloadBtn}
             onPress={()=> downloadReport(report)}
             activeOpacity={0.8}
           >
             <Text style={styles.downloadBtnText}>⬇ Download PDF</Text>
-          </TouchableOpacity>
+          </TouchableOpacity>}
         </>
       )}
 
-      {/* ── Go Home ── */}
-      <TouchableOpacity
+      { frame && <TouchableOpacity
         style={styles.homeBtn}
         onPress={() => router.replace('/')}
         activeOpacity={0.8}
       >
         <Text style={styles.homeBtnText}>Go back to Home</Text>
-      </TouchableOpacity>
+      </TouchableOpacity>}
+      { sessionData && <TouchableOpacity 
+        style={[styles.homeBtn, frame && { backgroundColor : "#d6d6d6" }]}
+        activeOpacity={0.8}
+        onPress={() => setFrame(true)}
+        disabled = { !frame && waitingForOtherParty }>
+        <Text style={styles.homeBtnText} onPress={()=> setFrame(true)}>Validate Report</Text>
+      </TouchableOpacity>}
     </ScrollView>
   );
 }
 
-// --- Styles ---
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: C.bg,
+    paddingTop:100
   },
   screenContent: {
     padding: 16,

@@ -15,6 +15,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StyledPicker from '@/components/themed-picker';
 import { useAccidentReport } from '@/context/AccidentReportContext';
+import { useSharedAccidentReport } from '@/context/SharedAccidentReportContext';
+import { checkIfAuthor, getUser } from '@/services/auth';
 
 // --- Design tokens ---
 const C = {
@@ -83,7 +85,8 @@ export default function Step2() {
   const router = useRouter();
   const [submitButton, setSubmitButton] = useState('Next');
   const [loading, setLoading] = useState(false);
-  const {selectedDriver, report, update} = useAccidentReport();
+  const { selectedDriver, report, update, switchDriver } = useAccidentReport();
+  const { sessionData, updateSession, updateBackendSession } = useSharedAccidentReport();
   // --- Function ---
   async function saveAndRedirect() {
     setSubmitButton('Loading…');
@@ -92,8 +95,19 @@ export default function Step2() {
       const userContract = await getUserContract(contractNumber);
       setSubmitButton('Next');
       setLoading(false);
+      if(sessionData){
+        const isAuthor = await checkIfAuthor(sessionData.createdBy);
+        if(isAuthor){
+          updateBackendSession({ ...sessionData.sharedData, user1Progress:3, logs:[`${new Date()} [HOST] Step 2 completed`],
+          sender:sessionData?.createdBy, redirect : false })
+        }else{
+          const user = await getUser();
+          updateBackendSession({ ...sessionData.sharedData, user2Progress:3, logs:[`${new Date()} [GUEST] Step 2 completed`],
+          sender:user, redirect : false })
+          switchDriver();
+        }
+      }
       if(selectedDriver === "driverA"){
-        console.log("driver A");
         update({ insuranceCompany: { vehicleA: { companyName: selectedInsurance, contractNumber } }, driver: {driverA: { license:userContract[0].drivingLicenseNumber }} });
       }else{
         update({ insuranceCompany: { vehicleB: { companyName: selectedInsurance, contractNumber } }, driver: {driverB: { license:userContract[0].drivingLicenseNumber }} });
@@ -112,7 +126,6 @@ export default function Step2() {
       if (!parsed) return;
 
       // Set defaults from saved setup info
-      console.log("PREFFILLED SETUP INFO:", parsed);
       setContractNumber(parsed.contractNumber);
       setSelectedInsurance(parsed.insuranceCompany);   // match your AsyncStorage key
       const registration = [parsed.registrationLeft, parsed.registrationPlateType, parsed.registrationRight];
@@ -125,7 +138,6 @@ export default function Step2() {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={100}
     >
       <ScrollView
         style={styles.screen}
@@ -200,6 +212,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
     gap: 12,
+    paddingVertical:150
   },
   pageTitle: {
     marginLeft: 4,

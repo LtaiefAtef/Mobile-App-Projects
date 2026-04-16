@@ -1,3 +1,6 @@
+import { ReportData } from "@/context/AccidentReportContext";
+import { IMessage } from "@stomp/stompjs";
+
 //  INSURANCE COMPANIES AND PLATE TYPES DATA
 export const insuranceList = [
   { label: "Please choose your insurance", value: "" },
@@ -61,4 +64,55 @@ export interface Contract {
   marketValue?: string
   drivingLicenseNumber?: string
   accident_date?: string
+}
+
+// --- Interface ---
+export interface SharedAccidentReportContextType {
+    sessionData: SessionData | null;
+    reportRef: any;
+    loadingSession: boolean;
+    updateSession:(value :any) => void;
+    toggleLoadingSession:() => void;
+    connectWS:(code :string) => void;
+    sendMessage:(sessionId :string, msg :IMessage) => void;
+    createSession(user :string | null): Promise<Session | null>;
+    joinSession(code :string, user :string):Promise<Session  | null>;
+    updateBackendSession(sharedData : any) : Promise<Session | null>;
+}
+export type Message = {
+  text: string;
+}
+// --- Session Data Type ---
+export type SessionData = {
+    code: string;
+    createdAt: Date;
+    createdBy: string;
+    participants: any;
+    sharedData: any;
+    sharedReport: string[] | null;
+    updatedAt: Date;
+    status: "WAITING" | "ACTIVE" | "CLOSED";
+    logs: string[] | null;
+    error: string[] | null;
+}
+// --- Session ---
+export interface Session {
+  id: string;
+  code: string;
+  createdBy: string;
+  participants: any;
+  sharedData: any;
+  status: "WAITING" | "ACTIVE" | "CLOSED";
+  createdAt: string;
+  updatedAt: string;
+}
+// --- Session Progress ---
+export interface SessionState{
+    user1Progress:number;
+    user2Progress:number;
+    redirect : boolean;
+    sender: string;
+    triggerHostAction:boolean;
+    triggerGuestAction:boolean;
+    report:ReportData
 }
