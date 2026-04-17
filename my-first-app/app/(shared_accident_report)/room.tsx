@@ -105,14 +105,12 @@ export default function Room() {
                     </View>
 
                     {/* Shared Data Card */}
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         disabled={(sessionData?.participants ?? []).length < 2 && isAuthor == false } 
                         style={[styles.copyButton,((sessionData?.participants ?? []).length < 2 || !isAuthor) 
                             && {backgroundColor:"#ececec"}]} 
                         onPress={()=>{if(isAuthor == false) return;
-                        updateBackendSession({ user1Progress:1, user2Progress:2,triggerGuestAction:true,triggerHostAction:false, redirect:true, 
-                        sender :sessionData?.createdBy } as SessionState)
-                        router.push("/(accident_report)/step-1")}}>
+                        updateBackendSession({ user1Progress:1, user2Progress:2, sender:sessionData?.createdBy, action:"start session" })}}>
                         <Text style={styles.copyButtonText}>Continue</Text>
                     </TouchableOpacity>
   

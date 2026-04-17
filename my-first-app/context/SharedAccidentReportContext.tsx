@@ -5,13 +5,14 @@ import { Client, IMessage } from "@stomp/stompjs";
 import { Session, SessionData, SessionState, SharedAccidentReportContextType } from "@/constants/appData";
 import { router } from "expo-router";
 import { checkIfAuthor, getUser } from "@/services/auth";
+import { ReportData } from "./AccidentReportContext";
 // --- Session Config ---
 const host = Constants.expoConfig?.hostUri?.split(":")[0] ?? "localhost";
 const API_BASE =`http://${host}:8081/sessions/`;
 const WS_URL = `ws://${host}:8081/ws`;
 
 // --- api Helper ---
-const api = async(path: string, opts: RequestInit = {}) : Promise<Session | null>=>{
+const api = async(path: string, opts: RequestInit = {}) : Promise<SessionData | null>=>{
     const token = await getToken();
     const res = await fetch(`${API_BASE}${path}`,{
         headers:{
@@ -33,7 +34,28 @@ const SharedAccidentReportContext = createContext<SharedAccidentReportContextTyp
 //  --- Provider ---
 export function SharedAccidentReportProvider({ children }: { children: ReactNode}){
     //  --- Session Data ---
-    const [sessionData, setSessionData] = useState<SessionData | null>(null)
+    const [sessionData, setSessionData] = useState<SessionData>({
+        code: "",
+        createdAt: new Date(),
+        createdBy: "",
+        participants: [],
+        sharedData: {
+            user1Progress: 0,
+            user2Progress: 0,
+            redirect: false,
+            sender: "",
+            triggerHostAction: false,
+            triggerGuestAction: false,
+            report: {} as ReportData
+        },
+        sender:"",
+        sharedReport: null,
+        updatedAt: new Date(),
+        status: "WAITING",
+        logs: [],
+        error: null,
+        action: ""
+    })
     // --- report Ref ---
     const reportRef = useRef(null);
     // --- Loader ---
@@ -51,11 +73,11 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
     // --- Create Session Function ---
     const createSession = useCallback(async(user:string)=>{
         setLoadingSession(true)
-        const s : Session | null  = await api("create",{
+        const s : SessionData | null  = await api("create",{
             method:"POST",
             body: JSON.stringify({ username:user })
         })
-        updateSession({...s});
+        setSessionData((prev) => ({...prev, ...s}));
         if(!s?.code){
             return null;
         }
@@ -72,7 +94,7 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
             return null;
         }
         connectWS(s.code);
-        updateSession({ ...s });
+        setSessionData((prev)=>({...prev, ...s}))
         return s;
     }
     // --- Connect To WebSocket Function ---
@@ -112,105 +134,33 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
                     // --- Update Data Case ---
                     /* This if case update Shared Data of the session between two users */
                     if(msg.type === "DATA_UPDATE"){
-                        const payload : SessionState = JSON.parse(msg.payload);
+                        const payload = JSON.parse(msg.payload);
                         const user = await getUser();
                         const isAuthor = await checkIfAuthor(user ?? "") ;
-                        // --- Case the Host Started the Accident Report Session ---
-                        if( isAuthor && payload.sender != user && payload.redirect == true){
-                            router.push("/(accident_report)/step-2");
-                            setSessionData((prev)=>{
-                                if(!prev) return prev;
-                                return {...prev, sharedData:{ ...prev.sharedData, user1Progress:payload.user1Progress,user2Progress:payload.user2Progress }}
-                            })
-                        }
-                        // --- Case both users completed their accident and they have to share both their report data ---
-                        console.log("CASE BOTH USERS", payload.sender, user);
-                        console.log(!isAuthor && payload.sender != user && Number(payload.user1Progress) == 6);
-                        console.log(isAuthor && payload.sender != user && Number(payload.user2Progress) == 6);
-                        // --- Case User 1 (HOST) ---
-                        if( isAuthor && payload.sender != user && Number(payload.user2Progress) == 6){
-                            console.log("HOST REPORT");
-                            reportRef.current = payload.report as any;
-                            setSessionData((prev) => {
-                            if (!prev) {
-                                return prev;
-                            }
-                            return {
-                                ...prev,
-                                sharedData: {
-                                ...payload,
-                                report: {
-                                    driver: {
-                                    driverB: payload.report.driver.driverB
-                                    },
-                                    insuranceCompany: {
-                                    vehicleB: payload.report.insuranceCompany.vehicleB
-                                    },
-                                    visibiledamage: {
-                                    vehicleB: payload.report.visibiledamage.vehicleB
-                                    },
-                                    circumstances: {
-                                    vehicleB: payload.report.circumstances.vehicleB
-                                    },
-                                    signatures: {
-                                    vehicleB: payload.report.signatures.vehicleB
-                                    },
+                        switch(payload.action){
+                            case "start session":
+                                if(payload.sender != user){
+                                    router.push("/(accident_report)/step-2");
+                                    setSessionData((prev) => ({...prev, sharedData: { ...payload } })) 
+                                    return;
                                 }
+                                setSessionData((prev) => ({...prev, sharedData: { ...payload } })) 
+                                router.push("/(accident_report)/step-1");
+                                return;
+                            case "progress":
+                                if(payload.sender != user && isAuthor){
+                                    setSessionData((prev)=> ({...prev, sharedData: { ...prev.sharedData, sender:payload.sender, user2Progress:payload.user2Progress } }))
+                                    return;
                                 }
-                            }
-                            })                          
-                        }
-                        // --- Case User 2 (GUEST) ---
-                        else if(!isAuthor && payload.sender != user && Number(payload.user1Progress) == 6){
-                            console.log("GUEST REPORT");
-                            reportRef.current = sessionData?.sharedData.report
-                            setSessionData((prev) => {
-                                if(!prev){
-                                    return prev;
+                                setSessionData((prev)=> ({...prev, sharedData: { ...prev.sharedData, sender:payload.sender, user1Progress:payload.user1Progress } }))
+                                return;
+                            case "final":
+                                if(payload.sender != user){
+                                    setSessionData((prev) => ({...prev, sharedData: { ...payload } }))
+                                    return;
                                 }
-                                return {
-                                    ...prev,
-                                    sharedData: {
-                                        ...payload,
-                                        report: {
-                                            accidentDate:payload.report.accidentDate,
-                                            accidentLocation:payload.report.accidentLocation,
-                                            injuries:{ ...payload.report.injuries },
-                                            otherVehiclesDamaged:{...payload.report.otherVehiclesDamaged},
-                                            witnesses:[...(payload.report.witnesses ?? [])],
-                                            driver: {
-                                                driverA: payload.report.driver.driverA
-                                            },
-                                            insuranceCompany: {
-                                                vehicleA: payload.report.insuranceCompany.vehicleA
-                                            },
-                                            visibiledamage: {
-                                                vehicleA: payload.report.visibiledamage.vehicleA
-                                            },
-                                            circumstances: {
-                                                vehicleA: payload.report.circumstances.vehicleA
-                                            },
-                                            signatures: {
-                                                vehicleA: payload.report.signatures.vehicleA
-                                            },
-                                        }
-                                    }
-                                }
-                            })
-                        }
-                        // --- Case for Traking and updating the Users Progress ---
-                        console.log("Progress1: ", payload.user1Progress, sessionData?.sharedData.user1Progress)
-                        console.log("Progress2: ", payload.user2Progress, sessionData?.sharedData.user2Progress)
-                        if(Number(payload.user1Progress) > Number(sessionData?.sharedData.user1Progress)){
-                            setSessionData((prev)=>{
-                                if(!prev) return prev;
-                                return {...prev, sharedData:{ ...prev.sharedData, user1Progress:payload.user1Progress }}
-                            })
-                        } else if(Number(payload.user2Progress) > Number(sessionData?.sharedData.user2Progress)){
-                            setSessionData((prev)=>{
-                                if(!prev) return prev;
-                                return { ...prev, sharedData:{ ...prev.sharedData, user2Progress:payload.user2Progress }}
-                            })
+                            default:
+                                break;
                         }
                     }
 
@@ -234,10 +184,6 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
     }, []);
     // --- Update Backend Session Function ---
     const updateBackendSession = (sharedData : SessionState) => {
-        setSessionData((prev : SessionData | null ) => {
-            if(!prev) return prev;
-            return ({ ...prev, sharedData })
-        })
         const s = api("update",{
             method:"POST",
             body: JSON.stringify({ code: sessionData?.code, username: sharedData.sender , sharedData : JSON.stringify({...sharedData}) })
@@ -256,7 +202,7 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
     }
     return (
         <SharedAccidentReportContext.Provider value={{ reportRef,sessionData:sessionData, updateSession,
-         connectWS, loadingSession, toggleLoadingSession, createSession, joinSession, updateBackendSession, sendMessage }}>
+         connectWS, loadingSession, toggleLoadingSession, createSession, joinSession, updateBackendSession, sendMessage, setSessionData }}>
             {children}
         </SharedAccidentReportContext.Provider>
     )

@@ -1,4 +1,4 @@
-import { SessionState } from "@/constants/appData";
+import { SessionData, SessionState } from "@/constants/appData";
 import { useAccidentReport } from "@/context/AccidentReportContext";
 import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
 import { checkIfAuthor, getUser } from "@/services/auth";
@@ -102,21 +102,23 @@ export default function Step5(): React.JSX.Element {
   const toggleAgreed = (): void => setAgreed((prev: boolean) => !prev);
 //  --- Saving Signature and redirecting to next step ---
     const { report, update, selectedDriver, switchDriver } = useAccidentReport();
-    const { sessionData, updateBackendSession } = useSharedAccidentReport();
+    const { sessionData, updateBackendSession, setSessionData } = useSharedAccidentReport();
     const router = useRouter();
     const saveAndRedirect = async() => {
         const svgData = buildSvgString(paths, 350, 420);
         if(sessionData){
           const isAuthor = await checkIfAuthor(sessionData.createdBy);
           if(isAuthor){
+            setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:6 } }));
             update({ signatures: { vehicleA: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
-            updateBackendSession({ ...sessionData.sharedData, user1Progress:6,
-            sender:sessionData?.createdBy, report, redirect : false } as SessionState)
+            updateBackendSession({ ...sessionData.sharedData, user1Progress:6, sender:sessionData?.createdBy, report, action:"final" })
+            console.log("HOST COMPLETED STEP 5");
           }else{
             const user = await getUser();
+            setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user2Progress:6 } }));
             update({ signatures: { vehicleB: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
-            updateBackendSession({ ...sessionData.sharedData, user2Progress:6,
-            sender:user, report, redirect : false, } as SessionState)
+            updateBackendSession({ ...sessionData.sharedData, user2Progress:6,sender:user, report, action:"final" })
+            console.log("GUEST COMPLETED STEP 5");
           }
           await AsyncStorage.setItem('@accident_report', JSON.stringify(report));
           router.push("/(accident_report)/sheet");

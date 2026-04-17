@@ -1,4 +1,4 @@
-import { Contract, insuranceList, plateTypeList } from '@/constants/appData';
+import { Contract, insuranceList, plateTypeList, SessionData } from '@/constants/appData';
 import { getUserContract } from '@/services/api';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -86,7 +86,7 @@ export default function Step2() {
   const [submitButton, setSubmitButton] = useState('Next');
   const [loading, setLoading] = useState(false);
   const { selectedDriver, report, update, switchDriver } = useAccidentReport();
-  const { sessionData, updateSession, updateBackendSession } = useSharedAccidentReport();
+  const { sessionData, updateSession, updateBackendSession, setSessionData } = useSharedAccidentReport();
   // --- Function ---
   async function saveAndRedirect() {
     setSubmitButton('Loading…');
@@ -98,20 +98,23 @@ export default function Step2() {
       if(sessionData){
         const isAuthor = await checkIfAuthor(sessionData.createdBy);
         if(isAuthor){
-          updateBackendSession({ ...sessionData.sharedData, user1Progress:3, logs:[`${new Date()} [HOST] Step 2 completed`],
-          sender:sessionData?.createdBy, redirect : false })
+          setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:3 } }));
+          updateBackendSession({ ...sessionData.sharedData, user1Progress:3, sender:sessionData?.createdBy, action:"progress" })
         }else{
           const user = await getUser();
-          updateBackendSession({ ...sessionData.sharedData, user2Progress:3, logs:[`${new Date()} [GUEST] Step 2 completed`],
-          sender:user, redirect : false })
+          setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user2Progress:3 } }));
+          updateBackendSession({ ...sessionData.sharedData, user2Progress:3, sender:user, action:"progress" })
           switchDriver();
         }
       }
       if(selectedDriver === "driverA"){
-        update({ insuranceCompany: { vehicleA: { companyName: selectedInsurance, contractNumber } }, driver: {driverA: { license:userContract[0].drivingLicenseNumber }} });
+          console.log("HOST COMPLETED STEP2")
+        update({ insuranceCompany: { vehicleA: { companyName: selectedInsurance, contractNumber: userContract[0].contractNumber } }, driver: {driverA: { license:userContract[0].drivingLicenseNumber }} });
       }else{
-        update({ insuranceCompany: { vehicleB: { companyName: selectedInsurance, contractNumber } }, driver: {driverB: { license:userContract[0].drivingLicenseNumber }} });
+          console.log("GUEST COMPLETED STEP2")
+        update({ insuranceCompany: { vehicleB: { companyName: selectedInsurance, contractNumber: userContract[0].contractNumber } }, driver: {driverB: { license:userContract[0].drivingLicenseNumber }} });
       }
+      console.log("User contract step-2",userContract[0]);
       router.push({
         pathname: '/(accident_report)/step-3',
         params: { contract: JSON.stringify(userContract[0]) }
@@ -124,7 +127,6 @@ export default function Step2() {
       const raw = await AsyncStorage.getItem("@account_setup_form");
       const parsed = raw ? JSON.parse(raw) : null;
       if (!parsed) return;
-
       // Set defaults from saved setup info
       setContractNumber(parsed.contractNumber);
       setSelectedInsurance(parsed.insuranceCompany);   // match your AsyncStorage key

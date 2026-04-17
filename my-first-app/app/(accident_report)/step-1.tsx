@@ -15,7 +15,7 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useAccidentReport } from '@/context/AccidentReportContext';
 import { useSharedAccidentReport } from '@/context/SharedAccidentReportContext';
-import { SessionState } from '@/constants/appData';
+import { SessionData, SessionState } from '@/constants/appData';
 
 // --- Types ---
 type Witness = {
@@ -249,13 +249,14 @@ const getLocation = async () => {
     }));
   // --- Save step 1 and redirect to step 2 ---
   const { report, update} = useAccidentReport();
-  const { sessionData, updateSession, updateBackendSession } = useSharedAccidentReport();
+  const { sessionData, updateBackendSession, setSessionData } = useSharedAccidentReport();
   const saveAndRedirect = async() => {
     update({accidentDate:form.accidentDate.toDateString(), submittedAt:new Date().toDateString() ,accidentLocation:form.address, injuries:form.injuries, witnesses:form.witnesses,
       otherVehiclesDamaged: { otherVehicleInvolved:form.otherVehiclesDamaged.otherVehicleInvolved, numberOfVehicles: Number(form.otherVehiclesDamaged.numberOfVehicles) }})
+      console.log("HOST COMPLETED STEP 1");
     if(sessionData){
-      updateBackendSession({ ...sessionData.sharedData, user1Progress:2,sender:sessionData?.createdBy, 
-        redirect:false } as SessionState)
+      setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:2 } }));
+      updateBackendSession({ ...sessionData.sharedData, user1Progress:2,sender:sessionData?.createdBy, action:"progress" })
     }
     router.push({ pathname: "/(accident_report)/step-2" });
     

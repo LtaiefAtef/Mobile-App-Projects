@@ -75,9 +75,10 @@ export interface SharedAccidentReportContextType {
     toggleLoadingSession:() => void;
     connectWS:(code :string) => void;
     sendMessage:(sessionId :string, msg :IMessage) => void;
-    createSession(user :string | null): Promise<Session | null>;
-    joinSession(code :string, user :string):Promise<Session  | null>;
-    updateBackendSession(sharedData : any) : Promise<Session | null>;
+    createSession(user :string | null): Promise<SessionData | null>;
+    joinSession(code :string, user :string):Promise<SessionData  | null>;
+    updateBackendSession(sharedData : any) : Promise<SessionData | null>;
+    setSessionData:(value : any) => void;
 }
 export type Message = {
   text: string;
@@ -87,8 +88,18 @@ export type SessionData = {
     code: string;
     createdAt: Date;
     createdBy: string;
-    participants: any;
-    sharedData: any;
+    participants: string[] | [];
+    sharedData: {
+      user1Progress: number;
+      user2Progress: number;
+      redirect: boolean
+      sender: string,
+      triggerHostAction: boolean,
+      triggerGuestAction: boolean,
+      report: ReportData | null
+    };
+    sender:string;
+    action:string;
     sharedReport: string[] | null;
     updatedAt: Date;
     status: "WAITING" | "ACTIVE" | "CLOSED";

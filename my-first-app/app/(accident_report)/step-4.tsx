@@ -7,6 +7,7 @@ import { CircumstancesVehicle, useAccidentReport } from "@/context/AccidentRepor
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
 import { checkIfAuthor, getUser } from "@/services/auth";
+import { SessionData } from "@/constants/appData";
 // --- Design tokens ---
 const C = {
   bg: '#F5F4F0',
@@ -152,19 +153,19 @@ const toggleCircumstance = (key: keyof typeof circumstances) => {
 const router = useRouter();
 // --- Save Step 4 and Redirect ---
 const { selectedDriver, report, update, switchDriver } = useAccidentReport();
-const { sessionData, updateBackendSession } = useSharedAccidentReport();
+const { sessionData, updateBackendSession, setSessionData } = useSharedAccidentReport();
 const SaveAndRedirect = async()=>{
   const totalChecked = Object.keys(circumstances).filter(key => circumstances[key as keyof CircumstancesVehicle] === true).length;
   if(sessionData){
     const isAuthor = await checkIfAuthor(sessionData.createdBy);
     if(isAuthor){
-      updateBackendSession({ ...sessionData.sharedData, user1Progress:5, logs:[`${new Date()} [HOST] Step 4 completed`],
-      sender:sessionData?.createdBy, redirect : false})
+      setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:5 } }));
+      updateBackendSession({ ...sessionData.sharedData, user1Progress:5,sender:sessionData?.createdBy, action:"progress" })
     }
     else{
       const user = await getUser();
-      updateBackendSession({ ...sessionData.sharedData, user2Progress:5, logs:[`${new Date()} [GUEST] Step 4 completed`],
-      sender:user, redirect : false})
+      setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user2Progress:5 } }));
+      updateBackendSession({ ...sessionData.sharedData, user2Progress:5,sender:user, action:"progress" })
       switchDriver();
     }
   }
@@ -183,6 +184,7 @@ const SaveAndRedirect = async()=>{
         vehicleA: { ...circumstances, totalChecked },
       },
     });
+    console.log("HOST COMPELETED STEP 4")
   }else{
     update({
       driver: {
@@ -198,6 +200,7 @@ const SaveAndRedirect = async()=>{
         vehicleB: { ...circumstances, totalChecked },
       },
     });
+    console.log("GUEST COMPELETED STEP 4")
   }
   router.push("/(accident_report)/step-5");
 }

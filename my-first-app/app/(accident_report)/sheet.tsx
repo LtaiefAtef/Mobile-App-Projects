@@ -42,44 +42,46 @@ export default function SuccessPage() {
   const [showReport, setShowReport] = useState(false);
   const [frame, setFrame] = useState(true);
   const [waitingForOtherParty, setWaitingForOtherParty] = useState(true);
-  const { sessionData, reportRef } = useSharedAccidentReport();
+  const { sessionData } = useSharedAccidentReport();
   useEffect(() => {
     async function wait(){
-      if (sessionData) {
-          console.log("Report Ref",reportRef);
-          const isAuthor = await checkIfAuthor(sessionData.createdBy);
-          // console.log("Session Data", JSON.stringify(sessionData, null, 2));
-          // console.log("REPORT",JSON.stringify(report, null, 2));
-          if(sessionData.sharedData.user1Progress == 6 && sessionData.sharedData.user2Progress == 6){
-            setWaitingForOtherParty(false);
-          }
-          if(!isAuthor){
-            update({
-              accidentDate:reportRef.current.accidentDate,
-              accidentLocation:reportRef.current.accidentLocation,
-              injuries:{ ...reportRef.current.injuries },
-              otherVehiclesDamaged:{...reportRef.current.otherVehiclesDamaged},
-              witnesses:[...(reportRef.current.witnesses ?? [])],
-              driver:{ driverA:reportRef.current.driver.driverA },
-              insuranceCompany:{ vehicleA:reportRef.current.insuranceCompany.vehicleA },
-              visibiledamage:{ vehicleA:reportRef.current.visibiledamage.vehicleA },
-              circumstances:{ vehicleA:reportRef.current.circumstances.vehicleA },
-              signatures:{ vehicleA:reportRef.current.signatures.vehicleA }
-            });
-          }else{
-            update({
-              driver: { driverB: reportRef.current.driver.driverB },
-              insuranceCompany: { vehicleB: reportRef.current.insuranceCompany.vehicleB },
-              visibiledamage: { vehicleB: reportRef.current.visibiledamage.vehicleB },
-              circumstances: { vehicleB: reportRef.current.circumstances.vehicleB },
-              signatures: { vehicleB: reportRef.current.signatures.vehicleB },
-            });
-          }
-        setFrame(false);
-        if(sessionData.sharedData.user1Progress == 6 && sessionData.sharedData.user2Progress == 6){
-          setWaitingForOtherParty(false);
-        }
+    if (sessionData) {
+      const isAuthor = await checkIfAuthor(sessionData.createdBy);
+
+      if (
+        sessionData.sharedData?.user1Progress === 6 &&
+        sessionData.sharedData?.user2Progress === 6
+      ) {
+        setWaitingForOtherParty(false);
       }
+
+      const Finalreport = sessionData?.sharedData?.report;
+      if (!isAuthor) {
+        console.log("GUEST IS UPDATING HIS REPORT");
+        update({
+          accidentDate: Finalreport?.accidentDate ?? "",
+          accidentLocation: Finalreport?.accidentLocation ?? "",
+          injuries: { ...(Finalreport?.injuries ?? {}) },
+          otherVehiclesDamaged: { ...(Finalreport?.otherVehiclesDamaged ?? {}) },
+          witnesses: [...(Finalreport?.witnesses ?? [])],
+          driver: { driverA: Finalreport?.driver?.driverA ?? {} },
+          insuranceCompany: { vehicleA: Finalreport?.insuranceCompany?.vehicleA ?? {} },
+          visibiledamage: { vehicleA: Finalreport?.visibiledamage?.vehicleA ?? "" },
+          circumstances: { vehicleA: Finalreport?.circumstances?.vehicleA ?? {} },
+          signatures: { vehicleA: Finalreport?.signatures?.vehicleA ?? {} }
+        });
+      } else {
+        console.log("HOST IS UPDATING HIS REPORT");
+        update({
+          driver: { driverB: Finalreport?.driver?.driverB ?? {} },
+          insuranceCompany: { vehicleB: Finalreport?.insuranceCompany?.vehicleB ?? {} },
+          visibiledamage: { vehicleB: Finalreport?.visibiledamage?.vehicleB ?? "" },
+          circumstances: { vehicleB: Finalreport?.circumstances?.vehicleB ?? {} },
+          signatures: { vehicleB: Finalreport?.signatures?.vehicleB ?? {} },
+        });
+      }
+      setFrame(false);
+    }
     }
     wait()
   }, [sessionData]);
