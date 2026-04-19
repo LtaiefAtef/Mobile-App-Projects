@@ -29,9 +29,9 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
     // GET /api/users/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable String id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+    @GetMapping("/{username}")
+    public ResponseEntity<User> getUser(@PathVariable String username) {
+        return ResponseEntity.ok(userService.getUserByUsername(username));
     }
     // GET /api/users/contracts
     @GetMapping("/contracts")

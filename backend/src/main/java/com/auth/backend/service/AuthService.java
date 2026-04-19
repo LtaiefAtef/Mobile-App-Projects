@@ -106,6 +106,7 @@ public class AuthService {
                 mongoUser.setLastName(request.getFamilyName());
                 mongoUser.setEmail(request.getEmail());
                 mongoUser.setPhone(request.getPhoneNumber());
+                mongoUser.setPassword(request.getPassword());
                 User saved = userRepository.save(mongoUser);
                 System.out.println("MongoDB saved with id: " + saved.getId());
             } catch (Exception mongoEx) {

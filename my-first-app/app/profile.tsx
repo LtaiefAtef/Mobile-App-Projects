@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+import { getUserInfo } from "@/services/api";
+import { getUser } from "@/services/auth";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -120,6 +123,28 @@ export default function Profile() {
     Alert.alert("Saved", "Your profile has been updated successfully.");
     setEditingSection(null);
   };
+
+useEffect(()=>{
+  async function getData(){
+    const user = await getUser();
+    if(!user){
+      router.push("/login");
+      return;
+    }
+    const userInfo = await getUserInfo(user).then((data)=>{
+      if(!data) return;
+      setFullName(data.firstName + " " + data.lastName);
+      setUsername(data.username);
+      setEmail(data.email);
+      setPhone(data.phone);
+      setPassword(data.password);
+    }).catch((e) => {
+      Alert.alert("User Not Found", "Could not fetch user info");
+      throw new Error("User Not Found, Error: " + e);
+    });
+  }
+  getData();
+},[])
 
   return (
     <KeyboardAvoidingView

@@ -85,11 +85,15 @@ export async function isVerified(username: string): Promise<boolean> {
     return res.json();
 }
 
-export async function getUserInfo(token: string) {
-    const res = await fetch(`${API_URL}/users/me`, {
+export async function getUserInfo(username: string) {
+    const token = await getToken();
+    const res = await fetch(`${API_URL}/users/${username}`, {
         headers: { Authorization: `Bearer ${token}` },
+        method:"GET"
     });
-    if (!res.ok) throw new Error("Failed to fetch user info");
+    if (!res.ok) throw new Error("Failed to fetch user info, Headers: " + JSON.stringify(res.headers, null , 2) + ", Status: " + res.status+ ", Text: " +
+        res.statusText
+    );
     return res.json();
 }
 
