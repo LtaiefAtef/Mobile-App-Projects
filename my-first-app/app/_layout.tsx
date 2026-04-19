@@ -123,7 +123,7 @@ const homeHeaderOptions = {
         <Stack.Screen name="(shared_accident_report)/session" options={{ title: 'Session Page' }} />
         <Stack.Screen name="(accident_report)/sheet"          options={{ title: 'Successful Report' }} />
         <Stack.Screen name="(account_setup)/setup"            options={{ title: 'Account Setup' }} />
-        <Stack.Screen name="/profile"                         options={{ title: 'Profile' }} />
+        <Stack.Screen name="profile"                         options={{ title: 'Profile' }} />
       </Stack>
 
       <Sidebar

@@ -2,6 +2,7 @@ package com.auth.backend.controller;
 
 import com.auth.backend.dto.User;
 import com.auth.backend.dto.Contract;
+import com.auth.backend.dto.ChangePasswordRequest;
 import com.auth.backend.dto.Claim;
 
 import com.auth.backend.service.UserService;

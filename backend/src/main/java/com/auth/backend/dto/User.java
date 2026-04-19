@@ -18,6 +18,7 @@ public class User {
     private String lastName;
     private String email;
     private String phone;
+    private String currentPassword;
     private String password;
 
     private LocalDateTime createdAt = LocalDateTime.now();

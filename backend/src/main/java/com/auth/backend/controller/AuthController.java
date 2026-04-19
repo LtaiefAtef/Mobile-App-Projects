@@ -3,19 +3,22 @@ package com.auth.backend.controller;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.auth.backend.dto.AdminLoginRequest;
+import com.auth.backend.dto.ChangePasswordRequest;
 import com.auth.backend.dto.LoginRequest;
 import com.auth.backend.dto.SignupRequest;
 import com.auth.backend.dto.TokenResponse;
-
+import com.auth.backend.dto.User;
 import com.auth.backend.service.AdminAuthService;
 import com.auth.backend.service.AuthService;
 
@@ -58,5 +61,33 @@ public class AuthController {
         TokenResponse response = authService.refreshToken(body.get("refreshToken"));
         if (response == null) return ResponseEntity.status(401).build();
         return ResponseEntity.ok(response);
+    }
+        // Delete User by username
+    @DeleteMapping("/delete-user/{username}")
+    public ResponseEntity<String> deleteUser(@PathVariable String username) {
+        System.out.println("Deleting a user");
+        authService.deleteUser(username);
+        return ResponseEntity.ok("User deleted successfully");
+    }
+    // Modify Fullname 
+    @PutMapping("/modify-fullname")
+    public ResponseEntity<User> modifyFullName(@RequestBody User user){
+        System.out.println(user.getFirstName() + " " + user.getLastName());
+        return ResponseEntity.ok(authService.setUserFullName(user));
+    }
+    // Modify email
+    @PutMapping("/modify-email")
+    public ResponseEntity<User> modifyUsername(@RequestBody User user){
+        return ResponseEntity.ok(authService.setUserEmail(user.getUsername(), user.getEmail()));
+    }
+    // Modify phone number
+    @PutMapping("/modify-phone")
+    public ResponseEntity<User> modifyPhone(@RequestBody User user){
+        return ResponseEntity.ok(authService.setUserPhoneNumber(user.getUsername(), user.getPhone()));
+    }
+    // Modify Password
+    @PutMapping("/modify-password")
+    public ResponseEntity<User> modifyPassword(@RequestBody ChangePasswordRequest request){
+        return ResponseEntity.ok(authService.setPassword(request.getUsername(), request.getCurrentPassword(), request.getNewPassword()));
     }
 }

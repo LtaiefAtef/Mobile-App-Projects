@@ -1,7 +1,8 @@
-import { getUserInfo } from "@/services/api";
-import { getUser } from "@/services/auth";
+import { User } from "@/constants/appData";
+import { deleteUserAccount, getUserInfo, setUserEmail, setUserFullName, setUserPhone } from "@/services/api";
+import { getUser, logout } from "@/services/auth";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { RefObject, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -114,13 +115,48 @@ export default function Profile() {
   const [phone, setPhone] = useState("+216 12 345 678");
   const [email, setEmail] = useState("jean.dupont@email.com");
   const [password, setPassword] = useState("mysecretpassword");
-
+  const [newPassword, setNewPassword] = useState("");
+  const [loading, setLoading] = useState(true);
+  const  previousUser : RefObject<User> = useRef({ firstName:"Jean", lastName:"Dupont", phone:"+216 12 345 678", password:"mysecretpassword" } as User);
   const [editingSection, setEditingSection] = useState<
     "personal" | "contact" | "security" | null
   >(null);
 
-  const handleSave = () => {
-    Alert.alert("Saved", "Your profile has been updated successfully.");
+  const handleSave = async() => {
+    // Alert.alert("Saved", "Your profile has been updated successfully.");
+    switch(editingSection){
+      case "personal":
+        try{
+          const res = await setUserFullName(username,fullName.split(" "));
+        }catch(e : any){
+          setFullName(previousUser.current?.firstName + " " + previousUser.current?.lastName);
+          Alert.alert("Update Error", e.toString());
+          console.log(e);
+        }
+        break;
+      case "contact":
+        try{
+          if(email != previousUser.current.email){
+            const res = await setUserEmail(username, email);
+          }
+          if(phone != previousUser.current.phone){
+            const res = await setUserPhone(username, phone);
+          }
+        }catch( e : any){
+          setEmail(previousUser.current.email);
+          Alert.alert("Update Error", e.toString());
+        }
+        break;
+      case "security":
+        try{
+            if(password != previousUser.current.password){
+            const res = await deleteUserAccount(username);
+          }
+        }catch(e:any){
+          Alert.alert("Update Error", e.toString());
+        }
+        break;
+    }
     setEditingSection(null);
   };
 
@@ -138,6 +174,8 @@ useEffect(()=>{
       setEmail(data.email);
       setPhone(data.phone);
       setPassword(data.password);
+      previousUser.current = data;
+      setLoading(false);
     }).catch((e) => {
       Alert.alert("User Not Found", "Could not fetch user info");
       throw new Error("User Not Found, Error: " + e);
@@ -146,11 +184,11 @@ useEffect(()=>{
   getData();
 },[])
 
-  return (
+  return ( 
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    >{ !loading ? 
       <ScrollView
         style={styles.screen}
         contentContainerStyle={styles.screenContent}
@@ -200,7 +238,7 @@ useEffect(()=>{
             value={username}
             onChangeText={setUsername}
             placeholder="Enter your username"
-            editable={editingSection === "personal"}
+            editable={false}
           />
 
           {editingSection === "personal" && (
@@ -281,21 +319,28 @@ useEffect(()=>{
           </View>
 
           <EditableField
-            label="Password"
+            label="Current Password"
             value={password}
             onChangeText={setPassword}
             placeholder="••••••••"
             secureTextEntry
             editable={editingSection === "security"}
           />
-
+          <EditableField
+            label="New Password"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            placeholder="••••••••"
+            secureTextEntry
+            editable={editingSection === "security"}
+          />
           {editingSection === "security" && (
             <TouchableOpacity
               style={styles.saveBtn}
               onPress={handleSave}
               activeOpacity={0.8}
             >
-              <Text style={styles.saveBtnText}>Update Password</Text>
+              <Text style={styles.saveBtnText} onPress={handleSave}>Update Password</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -311,7 +356,13 @@ useEffect(()=>{
                 "Are you sure you want to delete your account? This action is irreversible.",
                 [
                   { text: "Cancel", style: "cancel" },
-                  { text: "Delete", style: "destructive", onPress: () => {} },
+                  { text: "Delete", style: "destructive", onPress: async() => {
+                    try{ 
+                      const res = await deleteUserAccount(username);
+                      logout();
+                      router.replace("/login");
+                     }catch(e : any){Alert.alert("Could not Delete User Account")}
+                  } },
                 ]
               )
             }
@@ -320,7 +371,7 @@ useEffect(()=>{
             <Text style={styles.deleteBtnText}>Delete My Account</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </ScrollView> : <Text style={styles.pageTitle}>Loading...</Text> }
     </KeyboardAvoidingView>
   );
 }

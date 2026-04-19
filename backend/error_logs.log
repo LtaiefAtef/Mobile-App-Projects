@@ -694,3 +694,27 @@
  Location : backend/src/main/java/com/auth/backend/service/AuthService.java
  Error    : 401 Unauthorized: [no body]
 ------------------------------>
+
+==============================
+ Refresh Error
+ Date: 2026-04-19 15:06:32
+==============================
+ Location : AuthService.java
+ Error    : 400 Bad Request: "{"error":"invalid_grant","error_description":"Token is not active"}"
+------------------------------>
+
+==============================
+ Refresh Error
+ Date: 2026-04-19 17:39:20
+==============================
+ Location : AuthService.java
+ Error    : 400 Bad Request: "{"error":"invalid_grant","error_description":"Token is not active"}"
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-19 18:09:50
+==============================
+ Location : backend/src/main/java/com/auth/backend/service/AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>

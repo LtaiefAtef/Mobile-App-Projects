@@ -85,18 +85,6 @@ export async function isVerified(username: string): Promise<boolean> {
     return res.json();
 }
 
-export async function getUserInfo(username: string) {
-    const token = await getToken();
-    const res = await fetch(`${API_URL}/users/${username}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        method:"GET"
-    });
-    if (!res.ok) throw new Error("Failed to fetch user info, Headers: " + JSON.stringify(res.headers, null , 2) + ", Status: " + res.status+ ", Text: " +
-        res.statusText
-    );
-    return res.json();
-}
-
 export async function getUserContract(contractNumber: string|undefined) {
   const token = await getToken();
   const res = await fetch(`${API_URL}/users/contracts`,{
@@ -109,4 +97,100 @@ export async function getUserContract(contractNumber: string|undefined) {
   });
   if(!res.ok) throw new Error(`Error getting user contract: headers :${JSON.stringify(res.headers)}`)
   return res.json();
+}
+
+// --- User Functions --- 
+export async function getUserInfo(username: string) {
+    console.log("GETTING USER INFO");
+    const token = await getToken();
+ 
+    const res = await fetch(`${API_URL}/users/${username}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        method:"GET"
+    })
+    if (!res.ok) console.log("Failed to fetch user info, Headers: " + JSON.stringify(res.headers, null , 2) + ", Status: " + res.status+ ", Text: " +
+        res.statusText 
+    );
+    return res.json();
+}
+
+export async function setUserFullName(username :string, fullname :string[]){
+    const token = await getToken();
+    try{
+        const res = await fetch(`${API_URL}/users/modify-fullname`,{
+            headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
+            body:JSON.stringify({
+                username,
+                firstName:fullname[0],
+                lastName:fullname[1]
+            }
+            ),
+            method:"PUT"
+        })
+        if(!res.ok) console.log("Failed to modify fullname",res.headers, res.status,res.body, res.statusText);
+    }catch(e){
+        throw new Error("Could not Modify User: " + e)
+    }
+}
+
+export async function setUserEmail(username :string, email :string){
+    const token = await getToken();
+    try{
+        const res = await fetch(`${API_URL}/users/modify-email`,{
+            headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
+            body: JSON.stringify({
+                username,
+                email
+            }),
+            method:"PUT"
+        })
+        if(!res.ok) console.log("Failed to modify email",res.headers, res.status,res.body, res.statusText);
+    }catch(e){
+        throw new Error("Could not Modify User: " + e);
+    }
+}
+export async function setUserPhone(username :string, phone :string){
+    const token = await getToken();
+    try{
+        const res = await fetch(`${API_URL}/users/modify-phone`,{
+            headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
+            body: JSON.stringify({
+                username,
+                phone
+            }),
+            method:"PUT"
+        })
+        if(!res.ok) console.log("Failed to modify phone",res.headers, res.status,res.body, res.statusText);
+    }catch(e){
+        throw new Error("Could not Modify User: " + e);
+    }
+}
+export async function setUserPassword(username :string, password :string){
+    const token = await getToken();
+    try{
+        const res = await fetch(`${API_URL}/auth/modify-password`,{
+            headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
+            body: JSON.stringify({
+                username,
+                password
+            }),
+            method:"PUT"
+        })
+        if(!res.ok) console.log("Failed to modify phone",res.headers, res.status,res.body, res.statusText);
+    }catch(e){
+        throw new Error("Could not Modify User: " + e);
+    }
+}
+
+export async function deleteUserAccount(username :string) {
+    const token = await getToken();
+    try{
+        const res = await fetch(`${API_URL}/auth/delete-user/${username}`,{
+            headers: { Authorization: `Bearer ${token}` },
+            method:"DELETE"
+        })
+        if(!res.ok) console.log("Failed to modify phone",res.headers, res.status,res.body, res.statusText);
+    }catch(e){
+        throw new Error("Could not Delete User: " + e);
+    }
 }
