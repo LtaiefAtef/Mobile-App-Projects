@@ -117,7 +117,7 @@ export async function getUserInfo(username: string) {
 export async function setUserFullName(username :string, fullname :string[]){
     const token = await getToken();
     try{
-        const res = await fetch(`${API_URL}/users/modify-fullname`,{
+        const res = await fetch(`${API_URL}/auth/modify-fullname`,{
             headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
             body:JSON.stringify({
                 username,
@@ -136,7 +136,7 @@ export async function setUserFullName(username :string, fullname :string[]){
 export async function setUserEmail(username :string, email :string){
     const token = await getToken();
     try{
-        const res = await fetch(`${API_URL}/users/modify-email`,{
+        const res = await fetch(`${API_URL}/auth/modify-email`,{
             headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
             body: JSON.stringify({
                 username,
@@ -152,7 +152,7 @@ export async function setUserEmail(username :string, email :string){
 export async function setUserPhone(username :string, phone :string){
     const token = await getToken();
     try{
-        const res = await fetch(`${API_URL}/users/modify-phone`,{
+        const res = await fetch(`${API_URL}/auth/modify-phone`,{
             headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
             body: JSON.stringify({
                 username,
@@ -165,14 +165,15 @@ export async function setUserPhone(username :string, phone :string){
         throw new Error("Could not Modify User: " + e);
     }
 }
-export async function setUserPassword(username :string, password :string){
+export async function setUserPassword(username :string, currentPassword :string, newPassword :string){
     const token = await getToken();
     try{
         const res = await fetch(`${API_URL}/auth/modify-password`,{
             headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
             body: JSON.stringify({
                 username,
-                password
+                currentPassword,
+                newPassword
             }),
             method:"PUT"
         })

@@ -1,5 +1,5 @@
 import { User } from "@/constants/appData";
-import { deleteUserAccount, getUserInfo, setUserEmail, setUserFullName, setUserPhone } from "@/services/api";
+import { deleteUserAccount, getUserInfo, setUserEmail, setUserFullName, setUserPassword, setUserPhone } from "@/services/api";
 import { getUser, logout } from "@/services/auth";
 import { router } from "expo-router";
 import React, { RefObject, useEffect, useRef, useState } from "react";
@@ -127,20 +127,42 @@ export default function Profile() {
     switch(editingSection){
       case "personal":
         try{
-          const res = await setUserFullName(username,fullName.split(" "));
+          const devided = fullName.split(" ");
+          const res = await setUserFullName(username,devided);
+          previousUser.current.firstName = devided[0];
+          previousUser.current.lastName = devided[1];
         }catch(e : any){
           setFullName(previousUser.current?.firstName + " " + previousUser.current?.lastName);
           Alert.alert("Update Error", e.toString());
-          console.log(e);
         }
         break;
       case "contact":
         try{
-          if(email != previousUser.current.email){
-            const res = await setUserEmail(username, email);
-          }
           if(phone != previousUser.current.phone){
             const res = await setUserPhone(username, phone);
+            previousUser.current.phone = phone;
+          }
+          if(email != previousUser.current.email){
+            Alert.alert("Warning","Email Modification requires you to verify the email. Are you sure you to proceed ?",[
+              {
+                "text":"Cancel",
+                "style":"cancel"
+              },
+              {
+                "text":"Proceed",
+                "style":"default",
+                onPress:async()=>{
+                  const res = await setUserEmail(username, email).then(()=>{
+                    previousUser.current.email = email;
+                    router.push({
+                      pathname:"/(auth)/verify-email",
+                      params:{ action:"verify email", username, password }
+                    })
+                  })
+                }
+              }
+            ])
+
           }
         }catch( e : any){
           setEmail(previousUser.current.email);
@@ -149,10 +171,14 @@ export default function Profile() {
         break;
       case "security":
         try{
-            if(password != previousUser.current.password){
-            const res = await deleteUserAccount(username);
+          if(newPassword != previousUser.current.password){
+            const res = await setUserPassword(username,password,newPassword);
+            setPassword(newPassword);
+            setNewPassword("");
+            previousUser.current.password = newPassword;
           }
         }catch(e:any){
+          setPassword(previousUser.current.password);
           Alert.alert("Update Error", e.toString());
         }
         break;

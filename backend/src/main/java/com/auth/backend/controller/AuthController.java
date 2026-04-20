@@ -83,11 +83,13 @@ public class AuthController {
     // Modify phone number
     @PutMapping("/modify-phone")
     public ResponseEntity<User> modifyPhone(@RequestBody User user){
+        System.out.println("Changing Phone");
         return ResponseEntity.ok(authService.setUserPhoneNumber(user.getUsername(), user.getPhone()));
     }
     // Modify Password
     @PutMapping("/modify-password")
     public ResponseEntity<User> modifyPassword(@RequestBody ChangePasswordRequest request){
+        System.out.println("Changing password");
         return ResponseEntity.ok(authService.setPassword(request.getUsername(), request.getCurrentPassword(), request.getNewPassword()));
     }
 }

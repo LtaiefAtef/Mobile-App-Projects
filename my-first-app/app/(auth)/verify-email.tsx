@@ -2,6 +2,7 @@ import { isVerified, resendVerification } from "@/services/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -25,7 +26,7 @@ const C = {
 };
 
 export default function VerifyEmail() {
-  const { username } = useLocalSearchParams();
+  const { username, password, action } = useLocalSearchParams();
   const router = useRouter();
   const [timer, setTimer] = useState(60);
   const [disabledButton, setDisabledButton] = useState(true);
@@ -54,6 +55,14 @@ export default function VerifyEmail() {
     const poll = setInterval(async () => {
       try {
         const verified = await isVerified(username as string);
+        if(action === "verify email"){
+          handleResend();
+          if(verified){
+            router.back();
+            Alert.prompt("Sucessful", "Email modified sucessfully");
+            return;
+          }
+        }
         if (verified) {
           clearInterval(poll);
           router.replace("/(auth)/login");
