@@ -152,11 +152,11 @@ const toggleCircumstance = (key: keyof typeof circumstances) => {
 // --- Expo Router ---
 const router = useRouter();
 // --- Save Step 4 and Redirect ---
-const { selectedDriver, report, update, switchDriver } = useAccidentReport();
-const { sessionData, updateBackendSession, setSessionData } = useSharedAccidentReport();
+const { selectedDriver, report, update, switchDriver, setUser1Progress, setUser2Progress } = useAccidentReport();
+const { sessionData, updateBackendSession, setSessionData, inSession } = useSharedAccidentReport();
 const SaveAndRedirect = async()=>{
   const totalChecked = Object.keys(circumstances).filter(key => circumstances[key as keyof CircumstancesVehicle] === true).length;
-  if(sessionData){
+  if(inSession.current && sessionData){
     const isAuthor = await checkIfAuthor(sessionData.createdBy);
     if(isAuthor){
       setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:5 } }));
@@ -170,6 +170,7 @@ const SaveAndRedirect = async()=>{
     }
   }
   if(selectedDriver === "driverA"){
+    setUser1Progress(5);
     update({
       driver: {
         driverA: { fullName, address, dateOfBirth:date.toDateString()},
@@ -186,6 +187,7 @@ const SaveAndRedirect = async()=>{
     });
     console.log("HOST COMPELETED STEP 4")
   }else{
+    setUser2Progress(5)
     update({
       driver: {
         driverB: { fullName, address, dateOfBirth:date.toDateString() },

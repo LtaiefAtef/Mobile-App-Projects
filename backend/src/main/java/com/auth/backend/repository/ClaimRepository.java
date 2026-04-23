@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface ClaimRepository extends MongoRepository<Claim, String> {
     List<Claim> findAll();
+    boolean existsByClaimId(String claimId);
+    List<Claim> findByClaimId(String claimId);
 }

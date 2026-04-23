@@ -33,8 +33,8 @@ const SharedAccidentReportContext = createContext<SharedAccidentReportContextTyp
 
 //  --- Provider ---
 export function SharedAccidentReportProvider({ children }: { children: ReactNode}){
-    //  --- Session Data ---
-    const [sessionData, setSessionData] = useState<SessionData>({
+    // -- Default Session value ---
+    const defaultSession :SessionData = {
         code: "",
         createdAt: new Date(),
         createdBy: "",
@@ -55,9 +55,13 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
         logs: [],
         error: null,
         action: ""
-    })
+    }
+    //  --- Session Data ---
+    const [sessionData, setSessionData] = useState<SessionData>(defaultSession);
     // --- report Ref ---
     const reportRef = useRef(null);
+    // --- Session Data is present ---
+    const inSession = useRef(false);
     // --- Loader ---
     const [loadingSession, setLoadingSession] = useState(false);
     // --- Client ---
@@ -72,6 +76,7 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
     }
     // --- Create Session Function ---
     const createSession = useCallback(async(user:string)=>{
+        inSession.current=true;
         setLoadingSession(true)
         const s : SessionData | null  = await api("create",{
             method:"POST",
@@ -86,6 +91,7 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
     },[])
     // --- Join Session Function ---
     const joinSession = async(code:string, user:string)=>{
+        inSession.current=true;
         const s = await api("join",{
             method:"POST",
             body: JSON.stringify({ code,username:user })
@@ -202,7 +208,7 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
     }
     return (
         <SharedAccidentReportContext.Provider value={{ reportRef,sessionData:sessionData, updateSession,
-         connectWS, loadingSession, toggleLoadingSession, createSession, joinSession, updateBackendSession, sendMessage, setSessionData }}>
+         connectWS, loadingSession, toggleLoadingSession, createSession, joinSession, updateBackendSession, sendMessage, setSessionData, inSession, defaultSession }}>
             {children}
         </SharedAccidentReportContext.Provider>
     )

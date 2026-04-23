@@ -2,7 +2,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 // imports for PDF generation and sharing
 import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 // --- Types ---
 export type CircumstancesVehicle = {
   parkedStationary: boolean;
@@ -37,6 +36,7 @@ type Signature = {
 };
 
 export type ReportData = {
+  claimId: string;
   submittedAt: string;
   accidentDate: string;
   accidentLocation: string;
@@ -239,6 +239,7 @@ const defaultCircumstances: CircumstancesVehicle = {
 };
 
 const defaultReport: ReportData = {
+  claimId:"",
   submittedAt: "",
   accidentDate: "",
   accidentLocation: "",
@@ -283,6 +284,11 @@ type AccidentReportContextType = {
   selectedDriver: "driverA" | "driverB";
   switchDriver: () => void;
   report: ReportData;
+  defaultReport: ReportData;
+  user1Progress:number | null;
+  setUser1Progress: React.Dispatch<React.SetStateAction<number | null>>;
+  user2Progress:number | null;
+  setUser2Progress: React.Dispatch<React.SetStateAction<number | null>>;
   update: (patch: DeepPartial<ReportData>) => void;
   downloadReport: (report: ReportData) => void;
   toggleCircumstance: (
@@ -300,6 +306,9 @@ export function AccidentReportProvider({ children }: { children: ReactNode }) {
   const [report, setReport] = useState<ReportData>(defaultReport);
   // --- Current Driver ---
   const [selectedDriver, setSelectedDriver] = useState<"driverA" | "driverB">("driverA");
+  // --- User Progress ---
+  const [user1Progress,setUser1Progress] = useState<number | null>(null);
+  const [user2Progress,setUser2Progress] = useState<number | null>(null);
   // --- Switch Selected Driver function ---
   const switchDriver = () => setSelectedDriver(prev => (prev === "driverA" ? "driverB" : "driverA"));
   // --- Update function with deep merge ---
@@ -325,7 +334,8 @@ export function AccidentReportProvider({ children }: { children: ReactNode }) {
   const resetReport = () => setReport(defaultReport);
 
   return (
-    <AccidentReportContext.Provider value={{ report, update, downloadReport, toggleCircumstance, resetReport, selectedDriver, switchDriver }}>
+    <AccidentReportContext.Provider value={{ report, update, downloadReport, toggleCircumstance, resetReport, selectedDriver, switchDriver,
+      user1Progress, setUser1Progress, user2Progress, setUser2Progress, defaultReport }}>
       {children}
     </AccidentReportContext.Provider>
   );

@@ -806,3 +806,331 @@
  Location : AuthService.java
  Error    : 401 Unauthorized: [no body]
 ------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 09:10:18
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:13:22
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:15:07
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:20:51
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:24:57
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:25:44
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:25:59
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:26:21
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:26:48
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:28:01
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:31:30
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:31:53
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:32:03
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:32:17
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:35:28
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:35:48
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:36:05
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:36:46
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:38:38
+==============================
+ Location : AuthService.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Login Error
+ Date: 2026-04-20 10:39:43
+==============================
+ Location : AuthServiceeee.java
+ Error    : 401 Unauthorized: [no body]
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-04-20 13:15:36
+==============================
+ Location : AuthService.java
+ Error    : 409 Conflict: "{"errorMessage":"User exists with same email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-04-20 13:15:46
+==============================
+ Location : AuthService.java
+ Error    : 409 Conflict: "{"errorMessage":"User exists with same email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-04-20 13:16:49
+==============================
+ Location : AuthService.java
+ Error    : 409 Conflict: "{"errorMessage":"User exists with same email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-04-20 13:20:19
+==============================
+ Location : AuthService.java
+ Error    : 409 Conflict: "{"errorMessage":"User exists with same email"}"
+------------------------------>
+
+==============================
+ Email Verification Check Error
+ Date: 2026-04-20 13:20:59
+==============================
+ Location : AuthService.java
+ Error    : User not found in Keycloak: Nour1234
+------------------------------>
+
+==============================
+ Email Verification Check Error
+ Date: 2026-04-20 13:21:06
+==============================
+ Location : AuthService.java
+ Error    : User not found in Keycloak: Nour1234
+------------------------------>
+
+==============================
+ Email Verification Check Error
+ Date: 2026-04-20 13:21:09
+==============================
+ Location : AuthService.java
+ Error    : User not found in Keycloak: Nour1234
+------------------------------>
+
+==============================
+ Email Verification Check Error
+ Date: 2026-04-20 13:21:12
+==============================
+ Location : AuthService.java
+ Error    : User not found in Keycloak: Nour1234
+------------------------------>
+
+==============================
+ Email Verification Check Error
+ Date: 2026-04-20 13:21:15
+==============================
+ Location : AuthService.java
+ Error    : User not found in Keycloak: Nour1234
+------------------------------>
+
+==============================
+ Email Verification Check Error
+ Date: 2026-04-20 13:21:18
+==============================
+ Location : AuthService.java
+ Error    : User not found in Keycloak: Nour1234
+------------------------------>
+
+==============================
+ Email Verification Check Error
+ Date: 2026-04-20 13:21:21
+==============================
+ Location : AuthService.java
+ Error    : User not found in Keycloak: Nour1234
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-20 14:33:56
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-20 14:36:21
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-20 14:36:47
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-21 09:08:56
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-21 09:09:27
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-21 09:10:06
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-21 09:13:16
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-21 09:14:54
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-21 09:16:02
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>
+
+==============================
+ Resend Verification Error
+ Date: 2026-04-23 08:46:05
+==============================
+ Location : AuthService.java
+ Error    : 400 Bad Request: "{"errorMessage":"User email missing"}"
+------------------------------>

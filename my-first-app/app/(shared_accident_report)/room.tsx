@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View, TouchableOpacity, Clipboard } from "react-native";
 
 export default function Room() {
-    const { sessionData, updateBackendSession } = useSharedAccidentReport();
+    const { sessionData, updateBackendSession, inSession } = useSharedAccidentReport();
     const router = useRouter();
     const [isAuthor, setIsAuthor] = useState(false);
-    if(!sessionData){
+    if(!inSession.current || !sessionData){
         return <View style={{ flex:1, display:"flex", justifyContent:"center", alignItems:"center" }}>
                 <Text style={{ fontSize:35 }}>UnAuthorized Action <Link href="/">GO Back {"<-"}</Link></Text>
             </View>;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -174,14 +174,15 @@ const getLocation = async () => {
     return;
   }
 
+  // Try last known location first as a quick fallback
+  const lastKnown = await Location.getLastKnownPositionAsync({}).catch(() => null);
+
+  // Attempt current position, fall back to last known
   let loc = await Location.getCurrentPositionAsync({
     accuracy: Location.Accuracy.Lowest,
-  }).catch(() => null);
+  }).catch(() => null) ?? lastKnown;
 
-  if (!loc) {
-    loc = await Location.getLastKnownPositionAsync({});
-  }
-
+  // If still nothing, bail out
   if (!loc) {
     setErrorMsg('Could not get location. Make sure GPS is enabled.');
     setForm(f => ({ ...f, address: '' }));
@@ -201,11 +202,10 @@ const getLocation = async () => {
 
   setLocationLoading(false);
 };
-
   // --- Date ---
   const changeDate = (_: any, selectedDate?: Date | null) => {
     setDateFrame(false);
-    if (selectedDate) setForm(f => ({ ...f, date: selectedDate }));
+    if (selectedDate) setForm(f => ({ ...f, accidentDate: selectedDate }));
   };
 
   // --- Injuries ---
@@ -248,13 +248,18 @@ const getLocation = async () => {
       witnesses: f.witnesses.map(w => (w.id === id ? { ...w, [key]: value } : w)),
     }));
   // --- Save step 1 and redirect to step 2 ---
-  const { report, update} = useAccidentReport();
-  const { sessionData, updateBackendSession, setSessionData } = useSharedAccidentReport();
+  const { report, update, user1Progress, setUser1Progress, selectedDriver } = useAccidentReport();
+  const { sessionData, updateBackendSession, setSessionData, inSession } = useSharedAccidentReport();
   const saveAndRedirect = async() => {
+    console.log("In Session",inSession);
     update({accidentDate:form.accidentDate.toDateString(), submittedAt:new Date().toDateString() ,accidentLocation:form.address, injuries:form.injuries, witnesses:form.witnesses,
       otherVehiclesDamaged: { otherVehicleInvolved:form.otherVehiclesDamaged.otherVehicleInvolved, numberOfVehicles: Number(form.otherVehiclesDamaged.numberOfVehicles) }})
-      console.log("HOST COMPLETED STEP 1");
-    if(sessionData){
+      if(!inSession.current){
+        console.log("hodaihdaowdhaoidahoda")
+        setUser1Progress(2);
+      }
+    if(inSession.current && sessionData){
+      console.log("there is a session data");
       setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:2 } }));
       updateBackendSession({ ...sessionData.sharedData, user1Progress:2,sender:sessionData?.createdBy, action:"progress" })
     }

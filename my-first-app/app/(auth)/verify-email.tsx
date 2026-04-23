@@ -32,7 +32,7 @@ export default function VerifyEmail() {
   const [disabledButton, setDisabledButton] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
+  const resendHandled = useRef(false);
   const startTimer = () => {
     setTimer(60);
     setDisabledButton(true);
@@ -56,7 +56,10 @@ export default function VerifyEmail() {
       try {
         const verified = await isVerified(username as string);
         if(action === "verify email"){
-          handleResend();
+          if(!resendHandled.current){  
+            handleResend();
+            resendHandled.current = true;
+          }
           if(verified){
             router.back();
             Alert.prompt("Sucessful", "Email modified sucessfully");

@@ -2,7 +2,7 @@ package com.auth.backend.controller;
 
 import com.auth.backend.dto.User;
 import com.auth.backend.dto.Contract;
-import com.auth.backend.dto.ChangePasswordRequest;
+import com.auth.backend.dto.AddClaimRequest;
 import com.auth.backend.dto.Claim;
 
 import com.auth.backend.service.UserService;
@@ -55,5 +55,20 @@ public class UserController {
     public ResponseEntity<List<Claim>> getAllClaims(){
         System.out.println("Received Request to get all claims");
         return ResponseEntity.ok(userService.findClaims());
+    }
+    @GetMapping("/claims/{claimId}")
+    public ResponseEntity<List<Claim>> getClaimById(String ClaimId){
+        System.out.println("Recieved get claim request");
+        return ResponseEntity.ok(userService.getClaimByClaimId(ClaimId));
+    }
+    @PostMapping("/create-claim")
+    public ResponseEntity<Claim> createClaim(@RequestBody Claim claim){
+        System.out.println("Recieved Claim Create Request");
+        return ResponseEntity.ok(userService.createClaim(claim));
+    }
+    @PostMapping("/set-account-claim")
+    public ResponseEntity<User> addClaimForUser(@RequestBody AddClaimRequest addClaimRequest){
+        System.out.println("Adding new claim reference");
+        return ResponseEntity.ok(userService.addClaimIdToUser(addClaimRequest));
     }
 }

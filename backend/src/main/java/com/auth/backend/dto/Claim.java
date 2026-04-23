@@ -3,7 +3,6 @@ package com.auth.backend.dto;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.List;
 
 @Data
@@ -12,17 +11,16 @@ public class Claim {
 
     @Id
     private String id;
-
+    private String claimId;
     private String submittedAt;
     private String accidentDate;
     private String accidentLocation;
-
     private Injuries injuries;
     private OtherVehiclesDamaged otherVehiclesDamaged;
     private List<Witness> witnesses;
     private InsuranceCompany insuranceCompany;
     private Driver driver;
-    private String visibleDamage;
+    private VisibleDamage visibleDamage;
     private Circumstances circumstances;
     private String sketchImageUrl;
     private Signatures signatures;
@@ -32,21 +30,22 @@ public class Claim {
 
     @Data
     public static class Injuries {
-        private Boolean anyInjuries;
+        private boolean anyInjuries;
         private String injuryDetails;
     }
 
     @Data
     public static class OtherVehiclesDamaged {
-        private Boolean otherVehicleInvolved;
-        private Integer numberOfVehicles;
+        private boolean otherVehicleInvolved;
+        private int numberOfVehicles;
     }
 
     @Data
     public static class Witness {
-        private String fullName;
+        private String id;
+        private String full_name;
         private String address;
-        private Boolean isPassengerOfVehicle;
+        private boolean isPassangerOfVehicle;
     }
 
     @Data
@@ -73,6 +72,12 @@ public class Claim {
             private String dateOfBirth;
             private String license;
         }
+    }
+
+    @Data
+    public static class VisibleDamage {
+        private String vehicleA;
+        private String vehicleB;
     }
 
     @Data
@@ -111,6 +116,7 @@ public class Claim {
         public static class SignatureDetails {
             private boolean signed;
             private String signedAt;
+            private String svgData;
         }
     }
 

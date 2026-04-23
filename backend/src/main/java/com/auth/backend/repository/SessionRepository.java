@@ -10,6 +10,5 @@ import java.util.Optional;
 public interface SessionRepository extends MongoRepository<Session, String> {
 
     Optional<Session> findByCode(String code);
-
     boolean existsByCode(String code);
 }

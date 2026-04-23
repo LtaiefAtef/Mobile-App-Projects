@@ -4,6 +4,11 @@ import { HomeIcon } from '@/components/ui/home-icon';
 import { ProfileIcon } from '@/components/ui/profile-icon';
 import { SettingsIcon } from '@/components/ui/settings-icon';
 import { AboutIcon } from '@/components/ui/about-icon';
+import { useUser } from '@/context/UserContext';
+import { RefObject } from 'react';
+import { User } from '@/constants/appData';
+import { router } from 'expo-router';
+import { logout } from '@/services/auth';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SIDEBAR_WIDTH = SCREEN_WIDTH * 0.72;
@@ -37,7 +42,7 @@ const SidebarBanner = () => (
 const NAV_ITEMS = [
   { label: 'Home',     route: '/' as const,       Icon: HomeIcon },
   { label: 'Profile',  route: '/profile' as const, Icon: ProfileIcon },
-  { label: 'Settings', route: '/step-1' as const,  Icon: SettingsIcon },
+  { label: 'Settings', route: '/settings' as const,  Icon: SettingsIcon },
   { label: 'About',    route: '/about' as const,   Icon: AboutIcon },
 ];
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
@@ -47,15 +52,16 @@ export function Sidebar({
   onClose,
   onNavigate,
   currentPath,
+  userInfo
 }: {
   visible: boolean;
   slideAnim: Animated.Value;
   onClose: () => void;
   onNavigate: (route: string) => void;
   currentPath: string;
+  userInfo : User | null
 }){
   if (!visible) return null;
-
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {/* Backdrop */}
@@ -95,10 +101,10 @@ export function Sidebar({
         {/* ── 2. Profile ── */}
         <View style={styles.sidebarHeader}>
           <View style={styles.sidebarAvatar}>
-            <Text style={styles.sidebarAvatarText}>U</Text>
+            <Text style={styles.sidebarAvatarText}>{userInfo ? userInfo?.firstName[0] + userInfo?.lastName[0]: "U"}</Text>
           </View>
           <View style={{ gap: 2 }}>
-            <Text style={styles.sidebarName}>My Account</Text>
+            <Text style={styles.sidebarName}>{userInfo ? userInfo?.firstName + " " + userInfo?.lastName: "My account"}</Text>
             <Text style={styles.sidebarSub}>Manage your profile</Text>
           </View>
         </View>
@@ -134,7 +140,11 @@ export function Sidebar({
         <TouchableOpacity
           style={styles.logoutBtn}
           activeOpacity={0.7}
-          onPress={onClose}
+          onPress={async()=>{
+            await logout();
+            onClose();
+            router.replace("/(auth)/login");
+          }}
         >
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>

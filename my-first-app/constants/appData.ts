@@ -1,5 +1,7 @@
 import { ReportData } from "@/context/AccidentReportContext";
+import { claimRecord } from "@/context/UserContext";
 import { IMessage } from "@stomp/stompjs";
+import { RefObject } from "react";
 
 //  INSURANCE COMPANIES AND PLATE TYPES DATA
 export const insuranceList = [
@@ -43,6 +45,11 @@ export const plateTypeList = [
   { label: "- (Véhicule de l'état)", value: "- (Véhicule de l'état)" },
   { label: "Autre", value: "Autre" },
 ];
+export const languages = [
+  { label: "English", value: "en" },
+  { label: "Français", value: "fr" },
+  { label: "العربية", value: "ar" },
+];
 export interface Contract {
   id: string
   contractNumber: string
@@ -68,9 +75,11 @@ export interface Contract {
 
 // --- Interface ---
 export interface SharedAccidentReportContextType {
+    defaultSession: SessionData;
     sessionData: SessionData | null;
     reportRef: any;
     loadingSession: boolean;
+    inSession : RefObject<boolean>;
     updateSession:(value :any) => void;
     toggleLoadingSession:() => void;
     connectWS:(code :string) => void;
@@ -128,9 +137,11 @@ export interface SessionState{
     report:ReportData
 }
 export interface User {
+  username:string;
   firstName:string;
   lastName:string;
   phone:string;
   email:string;
   password:string;
+  myClaims:claimRecord[];
 }

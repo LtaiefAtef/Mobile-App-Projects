@@ -85,8 +85,8 @@ export default function Step2() {
   const router = useRouter();
   const [submitButton, setSubmitButton] = useState('Next');
   const [loading, setLoading] = useState(false);
-  const { selectedDriver, report, update, switchDriver } = useAccidentReport();
-  const { sessionData, updateSession, updateBackendSession, setSessionData } = useSharedAccidentReport();
+  const { selectedDriver, report, update, switchDriver, setUser1Progress, setUser2Progress } = useAccidentReport();
+  const { sessionData, updateSession, updateBackendSession, setSessionData, inSession } = useSharedAccidentReport();
   // --- Function ---
   async function saveAndRedirect() {
     setSubmitButton('Loading…');
@@ -95,7 +95,7 @@ export default function Step2() {
       const userContract = await getUserContract(contractNumber);
       setSubmitButton('Next');
       setLoading(false);
-      if(sessionData){
+      if(inSession.current && sessionData){
         const isAuthor = await checkIfAuthor(sessionData.createdBy);
         if(isAuthor){
           setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:3 } }));
@@ -109,9 +109,11 @@ export default function Step2() {
       }
       if(selectedDriver === "driverA"){
           console.log("HOST COMPLETED STEP2")
-        update({ insuranceCompany: { vehicleA: { companyName: selectedInsurance, contractNumber: userContract[0].contractNumber } }, driver: {driverA: { license:userContract[0].drivingLicenseNumber }} });
+          setUser1Progress(3);
+          update({ insuranceCompany: { vehicleA: { companyName: selectedInsurance, contractNumber: userContract[0].contractNumber } }, driver: {driverA: { license:userContract[0].drivingLicenseNumber }} });
       }else{
           console.log("GUEST COMPLETED STEP2")
+          setUser2Progress(3);
         update({ insuranceCompany: { vehicleB: { companyName: selectedInsurance, contractNumber: userContract[0].contractNumber } }, driver: {driverB: { license:userContract[0].drivingLicenseNumber }} });
       }
       console.log("User contract step-2",userContract[0]);

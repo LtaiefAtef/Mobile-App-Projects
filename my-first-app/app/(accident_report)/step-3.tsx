@@ -1,4 +1,5 @@
 import { Contract, SessionData } from "@/constants/appData";
+import { useAccidentReport } from "@/context/AccidentReportContext";
 import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
 import { checkIfAuthor, getUser } from "@/services/auth";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -59,10 +60,10 @@ export default function Step3() {
     { label: "Payment Method", value: userContract?.paymentMethod },
   ];
 
-  const { sessionData, updateBackendSession, setSessionData } = useSharedAccidentReport();
-
+  const { sessionData, updateBackendSession, setSessionData, inSession } = useSharedAccidentReport();
+  const { setUser1Progress, setUser2Progress, selectedDriver } = useAccidentReport();
   async function saveAndRedirect() {
-    if (sessionData) {
+    if (inSession.current && sessionData) {
       const isAuthor = await checkIfAuthor(sessionData?.createdBy);
       if (isAuthor) {
         setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:4 } }));
@@ -84,6 +85,11 @@ export default function Step3() {
         });
         console.log("GUEST COMPLETED STEP3");
       }
+    }
+    if(selectedDriver === "driverA"){
+      setUser1Progress(4);
+    }else{
+      setUser2Progress(4);
     }
     router.push({
       pathname: "/(accident_report)/step-4",

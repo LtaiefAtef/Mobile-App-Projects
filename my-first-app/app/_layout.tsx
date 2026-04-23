@@ -3,22 +3,21 @@ import { Stack, usePathname, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { AccidentReportProvider } from '@/context/AccidentReportContext';
+import { AccidentReportProvider, useAccidentReport } from '@/context/AccidentReportContext';
 import { SharedAccidentReportProvider, useSharedAccidentReport } from '@/context/SharedAccidentReportContext';
 import StepProgressBar from '@/components/step-progress-bar';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Dimensions,
-  Pressable,
   Platform,
 } from 'react-native';
 import { useRef, useState, useCallback } from 'react';
-import Svg, { Path, Circle, Rect, Ellipse } from 'react-native-svg';
 import { Sidebar } from '@/components/side-bar';
+import { UserProvider, useUser } from '@/context/UserContext';
+import { User } from '@/constants/appData';
+import { NotificationIcon } from '@/components/ui/notification-icon';
 
 export const unstable_settings = { anchor: '(tabs)' };
 
@@ -47,7 +46,6 @@ const HamburgerButton = ({ onPress }: { onPress: () => void }) => (
   </TouchableOpacity>
 );
 
-
 // ─── App Content ──────────────────────────────────────────────────────────────
 function AppContent() {
   const colorScheme = useColorScheme();
@@ -57,8 +55,10 @@ function AppContent() {
 
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
-
-  const openSidebar = useCallback(() => {
+  const { userInfo, getData, userPresent } = useUser();
+  const { user1Progress, user2Progress} = useAccidentReport();
+  const [user, setUser] = useState<User | null>(null);
+  const openSidebar = useCallback(async() => {
     setSidebarVisible(true);
     Animated.spring(slideAnim, {
       toValue: 1,
@@ -66,6 +66,13 @@ function AppContent() {
       tension: 80,
       friction: 10,
     }).start();
+    if(!userPresent.current){
+      const data = await getData();
+      if(!data){
+        router.replace("/(auth)/login");
+      }
+      setUser(data);
+    }
   }, [slideAnim]);
 
   const closeSidebar = useCallback(() => {
@@ -95,16 +102,17 @@ const homeHeaderOptions = {
   headerLeft: hamburgerHeaderLeft,
   headerShadowVisible: false,
   headerStyle: { backgroundColor: C.bg },
+  headerRight: () => <NotificationIcon hasNotification={false} onPress={()=> router.push("/notifications")} />,
 };
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       {(path.includes('step-') || path.includes('sheet')) && (
         <StepProgressBar
-          user1Step={sessionData?.sharedData?.user1Progress ?? null}
-          user2Step={sessionData?.sharedData?.user2Progress ?? null}
-          user1Label={sessionData?.createdBy ?? null}
-          user2Label={sessionData?.participants[1] ?? null}
+          user1Step={sessionData?.sharedData?.user1Progress || user1Progress || 0}
+          user2Step={sessionData?.sharedData?.user2Progress || user2Progress || 0}
+          user1Label={sessionData?.createdBy || "You"}
+          user2Label={sessionData?.participants[1] || "Other User"}
         />
       )}
 
@@ -124,6 +132,7 @@ const homeHeaderOptions = {
         <Stack.Screen name="(accident_report)/sheet"          options={{ title: 'Successful Report' }} />
         <Stack.Screen name="(account_setup)/setup"            options={{ title: 'Account Setup' }} />
         <Stack.Screen name="profile"                         options={{ title: 'Profile' }} />
+        <Stack.Screen name="notifications"                         options={{ title: 'Notifications' }} />
       </Stack>
 
       <Sidebar
@@ -132,6 +141,7 @@ const homeHeaderOptions = {
         onClose={closeSidebar}
         onNavigate={handleNavigate}
         currentPath={path}
+        userInfo={user}
       />
 
       <StatusBar style="dark" />
@@ -141,11 +151,13 @@ const homeHeaderOptions = {
 
 export default function RootLayout() {
   return (
-    <SharedAccidentReportProvider>
-      <AccidentReportProvider>
-        <AppContent />
-      </AccidentReportProvider>
-    </SharedAccidentReportProvider>
+    <UserProvider>
+      <SharedAccidentReportProvider>
+        <AccidentReportProvider>
+          <AppContent />
+        </AccidentReportProvider>
+      </SharedAccidentReportProvider>
+    </UserProvider>
   );
 }
 

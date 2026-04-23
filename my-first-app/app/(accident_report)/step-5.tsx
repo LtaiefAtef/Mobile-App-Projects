@@ -1,6 +1,7 @@
 import { SessionData, SessionState } from "@/constants/appData";
 import { useAccidentReport } from "@/context/AccidentReportContext";
 import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
+import { createClaim } from "@/services/api";
 import { checkIfAuthor, getUser } from "@/services/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -101,12 +102,12 @@ export default function Step5(): React.JSX.Element {
 
   const toggleAgreed = (): void => setAgreed((prev: boolean) => !prev);
 //  --- Saving Signature and redirecting to next step ---
-    const { report, update, selectedDriver, switchDriver } = useAccidentReport();
-    const { sessionData, updateBackendSession, setSessionData } = useSharedAccidentReport();
+    const { report, update, selectedDriver, switchDriver, setUser1Progress, setUser2Progress } = useAccidentReport();
+    const { sessionData, updateBackendSession, setSessionData, inSession } = useSharedAccidentReport();
     const router = useRouter();
     const saveAndRedirect = async() => {
         const svgData = buildSvgString(paths, 350, 420);
-        if(sessionData){
+        if(inSession.current && sessionData){
           const isAuthor = await checkIfAuthor(sessionData.createdBy);
           if(isAuthor){
             setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:6 } }));
@@ -125,13 +126,17 @@ export default function Step5(): React.JSX.Element {
           return;
         }
         if(selectedDriver === "driverA"){
+            console.log("OH IF???",selectedDriver)
+            setUser2Progress(2);
+            setUser1Progress(6);
             update({ signatures: { vehicleA: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
             switchDriver();
             router.push("/(accident_report)/step-2");
         }else{
+            console.log("OH ELSE???",selectedDriver)
+            setUser2Progress(6);
             update({ signatures: { vehicleB: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
             try {
-                await AsyncStorage.setItem('@accident_report', JSON.stringify(report));
                 router.push("/(accident_report)/sheet");
             } catch (e) {
                 console.error("Failed to save report:", e);

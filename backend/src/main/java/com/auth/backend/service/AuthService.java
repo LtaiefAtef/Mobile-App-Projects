@@ -9,11 +9,13 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.auth.backend.dto.LoginRequest;
@@ -82,23 +84,42 @@ public class AuthService {
 
     // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-    public TokenResponse login(LoginRequest request) {
+   public ResponseEntity<?> login(LoginRequest request) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
             MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
             body.add("grant_type", "password");
             body.add("client_id", CLIENT_ID);
             body.add("username", request.getUsername());
             body.add("password", request.getPassword());
+
             HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
-            return rest.postForObject(KEYCLOAK_TOKEN_URL, entity, TokenResponse.class);
-        } catch (Exception e) {
-            BackendLogger.logError("Login Error", "AuthService.java", e);
-            return null;
+
+            ResponseEntity<TokenResponse> response = rest.exchange(
+                KEYCLOAK_TOKEN_URL,
+                HttpMethod.POST,
+                entity,
+                TokenResponse.class
+            );
+
+            return ResponseEntity.ok(response.getBody());
+
+        }catch (HttpClientErrorException e) {
+            String message = "Invalid username or password";
+            String raw = e.getResponseBodyAsString();
+            System.out.println("KEYCLOAK LOGGED ERROR: " + raw);
+            if (raw.contains("user_not_found")) {
+                message = "User does not exist";
+            } else if (raw.contains("invalid_grant")) {
+                message = "Wrong password";
+            }
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(message);
         }
     }
-
     public TokenResponse refreshToken(String refreshToken) {
         try {
             HttpHeaders headers = new HttpHeaders();

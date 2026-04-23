@@ -1,4 +1,9 @@
+import { ClaimCard, SubmissionMode } from "@/components/claim-component";
+import { useAccidentReport } from "@/context/AccidentReportContext";
+import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
+import { useUser } from "@/context/UserContext";
 import { useRouter } from "expo-router";
+import { useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -18,7 +23,37 @@ const C = {
 };
 
 export default function Home() {
+  const { setUser1Progress } = useAccidentReport();
+  const { inSession, setSessionData, defaultSession } = useSharedAccidentReport();
+  const { userClaims, userPresent, getData } = useUser();
   const router = useRouter();
+  const claims = [
+  {
+    claimId: "CLM-001",
+    claimName: "Medical Expense Reimbursement",
+    submittedAt: "2024-01-15T10:30:00Z",
+    submittedWith: "John Doe",
+    mode: "Session"
+  },
+  {
+    claimId: "CLM-002",
+    claimName: "Travel Insurance Claim",
+    submittedAt: "2024-02-20T14:45:00Z",
+    submittedWith: "Jane Smith",
+    mode: "Session"
+  },
+  {
+    claimId: "CLM-003",
+    claimName: "Property Damage Claim",
+    submittedAt: "2024-03-05T09:15:00Z",
+    submittedWith: "Bob Johnson",
+    mode: "Session"
+  },];
+  // useEffect(()=>{
+  //   if(!userPresent){
+  //     getData();
+  //   }
+  // },[])
   return (
     <View style={styles.screen}>
       <View style={styles.card}>
@@ -27,7 +62,13 @@ export default function Home() {
         <TouchableOpacity
           style={styles.btn}
           activeOpacity={0.8}
-          onPress={() => router.push("/(accident_report)/step-1")}
+          onPress={() => {
+            setUser1Progress(1);
+            console.log("MANUAL");
+            setSessionData(defaultSession);
+            inSession.current = false;
+            router.push("/(accident_report)/step-1")
+          }}
         >
           <Text style={styles.btnText}>Create a claim manually</Text>
         </TouchableOpacity>
@@ -48,6 +89,20 @@ export default function Home() {
           <Text style={styles.btnText}>Set up your account</Text>
         </TouchableOpacity>
         <Text style={styles.subtitle}>Setup your account for a better experience.</Text>
+      </View>
+      <View style={{width:"100%", marginTop:25, gap:15}}>
+      {/* {claims.map((claim) => (
+        <ClaimCard
+          key={claim.claimId}
+          claimId={claim.claimId}
+          claimName={claim.claimName}
+          submittedAt={claim.submittedAt}
+          submittedWith={claim.submittedWith}
+          mode={claim.mode}
+          onEdit={() => console.log("Edit", claim.claimId)}
+          onDelete={() => console.log("Delete", claim.claimId)}
+        />
+      ))} */}
       </View>
     </View>
   );

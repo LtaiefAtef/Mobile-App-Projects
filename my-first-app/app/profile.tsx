@@ -1,4 +1,5 @@
 import { User } from "@/constants/appData";
+import { useUser } from "@/context/UserContext";
 import { deleteUserAccount, getUserInfo, setUserEmail, setUserFullName, setUserPassword, setUserPhone } from "@/services/api";
 import { getUser, logout } from "@/services/auth";
 import { router } from "expo-router";
@@ -117,6 +118,7 @@ export default function Profile() {
   const [password, setPassword] = useState("mysecretpassword");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(true);
+  const { userInfo, userPresent, getData} = useUser();
   const  previousUser : RefObject<User> = useRef({ firstName:"Jean", lastName:"Dupont", phone:"+216 12 345 678", password:"mysecretpassword" } as User);
   const [editingSection, setEditingSection] = useState<
     "personal" | "contact" | "security" | null
@@ -193,19 +195,21 @@ useEffect(()=>{
       router.push("/login");
       return;
     }
-    const userInfo = await getUserInfo(user).then((data)=>{
-      if(!data) return;
-      setFullName(data.firstName + " " + data.lastName);
-      setUsername(data.username);
-      setEmail(data.email);
-      setPhone(data.phone);
-      setPassword(data.password);
-      previousUser.current = data;
-      setLoading(false);
-    }).catch((e) => {
-      Alert.alert("User Not Found", "Could not fetch user info");
-      throw new Error("User Not Found, Error: " + e);
-    });
+    if(!userPresent.current){
+      try{
+        await getData();
+      }catch(e){
+        Alert.alert("User Not Found", "Could not fetch user info");
+        throw new Error("User Not Found, Error: " + e);
+      };
+    }
+    previousUser.current = userInfo.current;
+    setFullName(previousUser.current.firstName + " " + previousUser.current.lastName);
+    setUsername(previousUser.current.username);
+    setEmail(previousUser.current.email);
+    setPhone(previousUser.current.phone);
+    setPassword(previousUser.current.password);
+    setLoading(false);
   }
   getData();
 },[])

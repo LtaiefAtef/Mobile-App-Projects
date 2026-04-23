@@ -1,6 +1,8 @@
 import Constants from "expo-constants";
 import { getAccessToken, getRefreshToken, getTokenExpirationDate, logout, saveToken } from "./auth";
 import { router } from "expo-router";
+import { ReportData } from "@/context/AccidentReportContext";
+import { claimRecord } from "@/context/UserContext";
 
 const { debuggerHost } = Constants.expoConfig?.hostUri 
   ? { debuggerHost: Constants.expoConfig.hostUri.split(":")[0] }
@@ -38,21 +40,21 @@ export async function getToken(): Promise<string | null> {
 }
 
 export async function loginRequest(username:string, password:string){
-    const res = await fetch(`${API_URL}/auth/login`,{
-        method:"POST",
-        headers:{
-            "Content-Type" : "application/json",
-        },
-        body : JSON.stringify({
-            username,
-            password
-        }),
-    });
-    if(!res.ok){
-        throw new Error("Login failed");
-    }
-    const data = await res.json();
-    return data;
+        const res = await fetch(`${API_URL}/auth/login`,{
+            method:"POST",
+            headers:{
+                "Content-Type" : "application/json",
+            },
+            body : JSON.stringify({
+                username,
+                password
+            }),
+        });
+        if(!res.ok && res.status === 401){
+            throw new Error("Invalid Crednentials");
+        }
+        const data = await res.json();
+        return data;
 }
 
 export async function signupRequest({ prename, familyName, username, phoneNumber, email, password }: {
@@ -101,7 +103,6 @@ export async function getUserContract(contractNumber: string|undefined) {
 
 // --- User Functions --- 
 export async function getUserInfo(username: string) {
-    console.log("GETTING USER INFO");
     const token = await getToken();
  
     const res = await fetch(`${API_URL}/users/${username}`, {
@@ -195,3 +196,45 @@ export async function deleteUserAccount(username :string) {
         throw new Error("Could not Delete User: " + e);
     }
 }
+
+export async function createClaim(claim : ReportBody) {
+    const token = await getToken();
+    try{
+        const res = await fetch(`${API_URL}/users/create-claim`,{
+            headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json"},
+            method:"POST",
+            body: JSON.stringify(claim)
+        })
+        if(!res.ok) console.log("Failed to create a claim", res.headers, res.status, res.body, res.statusText)
+    }catch(e){
+        throw new Error("Could not create a claim" + e);
+    }
+}
+
+export async function addClaimForUser(username :string, claimId :string) {
+    const token = await getToken();
+    try{
+        const res = await fetch(`${API_URL}/users/set-account-claim`,{
+            headers:{ Authorization:`Bearer ${token}`, "Content-Type":"application/json"},
+            method:'POST',
+            body: JSON.stringify({username, claimId})
+        })
+        if(!res.ok) console.log("Failed to add claim for user");
+    }catch(e){
+        throw new Error("Could not Add Claim for User");
+    }
+}
+
+// export async function getClaimByClaimId(claim : claimRecord) : Promise<claimRecord> {
+//     const token = await getToken();
+//     try{
+//         const res : any = await fetch(`${API_URL}/users/claims/${claim.claimId}`,{
+//             headers:{ Authorization:`Bearer ${token}`, "Content-Type":"application/json" },
+//             method:"GET"
+//         })
+//         if(!res.ok) console.log("Failed to get claim for user");
+//         return res.json();
+//     }catch(e){
+//         throw new Error("Could not get claim for user");
+//     }
+// }

@@ -3,6 +3,7 @@ import { saveToken, saveUser } from "@/services/auth";
 import { Link, router } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -87,12 +88,15 @@ export default function Login() {
 
     setErrors(newErrors);
     if (hasError) return;
-
-    const data = await loginRequest(username, password);
-    if (!data) return;
-    await saveToken(data.access_token, data.refresh_token, data.expires_in);
-    saveUser(username);
-    router.push("/");
+    try{
+      const data = await loginRequest(username, password);
+      if (!data) return;
+      await saveToken(data.access_token, data.refresh_token, data.expires_in);
+      saveUser(username);
+      router.push("/");
+    }catch(e:any){
+      setErrors({username:e?.message, password:e?.message});
+    }
   };
 
   return (

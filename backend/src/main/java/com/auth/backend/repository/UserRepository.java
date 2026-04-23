@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface UserRepository extends MongoRepository<User, String> {
 
     Optional<User> findByUsername(String username);
-    void deleteByUsername(String username);
+    void deleteByUsername(String username);    
     // Search by name or email (case-insensitive)
     @Query("{ '$or': [ { 'firstName': { $regex: ?0, $options: 'i' } }, { 'lastName': { $regex: ?0, $options: 'i' } }, { 'email': { $regex: ?0, $options: 'i' } } ] }")
     List<User> searchUsers(String keyword);

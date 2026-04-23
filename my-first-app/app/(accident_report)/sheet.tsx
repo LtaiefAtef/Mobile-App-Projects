@@ -11,6 +11,8 @@ import { useRouter } from 'expo-router';
 import { useAccidentReport } from '@/context/AccidentReportContext';
 import { useSharedAccidentReport } from '@/context/SharedAccidentReportContext';
 import { checkIfAuthor } from '@/services/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createClaim } from '@/services/api';
 
 const C = {
   bg: '#F5F4F0',
@@ -38,14 +40,14 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
 
 export default function SuccessPage() {
   const router = useRouter();
-  const { report, downloadReport, update } = useAccidentReport();
+  const { report, downloadReport, update, setUser1Progress, setUser2Progress, defaultReport, switchDriver } = useAccidentReport();
   const [showReport, setShowReport] = useState(false);
   const [frame, setFrame] = useState(true);
   const [waitingForOtherParty, setWaitingForOtherParty] = useState(true);
-  const { sessionData } = useSharedAccidentReport();
+  const { sessionData, inSession, defaultSession, setSessionData } = useSharedAccidentReport();
   useEffect(() => {
     async function wait(){
-    if (sessionData) {
+    if (inSession.current && sessionData) {
       const isAuthor = await checkIfAuthor(sessionData.createdBy);
 
       if (
@@ -81,9 +83,15 @@ export default function SuccessPage() {
         });
       }
       setFrame(false);
+    }else{
+      setWaitingForOtherParty(false);
+      setFrame(true);
+      setShowReport(true);
+      await AsyncStorage.setItem('@accident_report', JSON.stringify(report));
+      const res = await createClaim(report as ReportBody);
     }
-    }
-    wait()
+  }
+  wait()
   }, [sessionData]);
 useEffect(()=>{},[report]);
   return (
@@ -111,8 +119,8 @@ useEffect(()=>{},[report]);
         activeOpacity={0.8}
       >
         <Text style={styles.toggleReportBtnText}>
-          {!frame && !waitingForOtherParty ? showReport ? 'Hide Report ↑' : 'View Full Report ↓' : "Waiting For Other Party" }
-          {!sessionData && (showReport ? 'Hide Report ↑' : 'View Full Report ↓')}
+          {inSession.current && (!frame && !waitingForOtherParty ? showReport ? 'Hide Report ↑' : 'View Full Report ↓' : "Waiting For Other Party") }
+          {!inSession.current && (showReport ? 'Hide Report ↑' : 'View Full Report ↓')} 
         </Text>
       </TouchableOpacity>
 
@@ -243,7 +251,16 @@ useEffect(()=>{},[report]);
 
       { frame && <TouchableOpacity
         style={styles.homeBtn}
-        onPress={() => router.replace('/')}
+        onPress={async() => {
+          setUser1Progress(0);
+          setUser2Progress(0);
+          await AsyncStorage.setItem("@report",JSON.stringify(report));
+          update(defaultReport)
+          setSessionData(defaultSession);
+          inSession.current = false;
+          switchDriver();
+          router.replace('/')
+        }}
         activeOpacity={0.8}
       >
         <Text style={styles.homeBtnText}>Go back to Home</Text>
@@ -253,7 +270,10 @@ useEffect(()=>{},[report]);
         activeOpacity={0.8}
         onPress={() => setFrame(true)}
         disabled = { !frame && waitingForOtherParty }>
-        <Text style={styles.homeBtnText} onPress={()=> setFrame(true)}>Validate Report</Text>
+        <Text style={styles.homeBtnText} onPress={async()=> {
+          const res = await createClaim(sessionData.sharedData.report as ReportBody);
+          setFrame(true);
+        }}>Validate Report</Text>
       </TouchableOpacity>}
     </ScrollView>
   );
