@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAccidentReport } from '@/context/AccidentReportContext';
 import { useSharedAccidentReport } from '@/context/SharedAccidentReportContext';
-import { checkIfAuthor } from '@/services/auth';
+import { checkIfAuthor, getUser } from '@/services/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClaim } from '@/services/api';
 
@@ -44,7 +44,7 @@ export default function SuccessPage() {
   const [showReport, setShowReport] = useState(false);
   const [frame, setFrame] = useState(true);
   const [waitingForOtherParty, setWaitingForOtherParty] = useState(true);
-  const { sessionData, inSession, defaultSession, setSessionData } = useSharedAccidentReport();
+  const { sessionData, inSession, defaultSession, setSessionData, reportRef } = useSharedAccidentReport();
   useEffect(() => {
     async function wait(){
     if (inSession.current && sessionData) {
@@ -83,6 +83,7 @@ export default function SuccessPage() {
         });
       }
       setFrame(false);
+      reportRef.current = report;
     }else{
       setWaitingForOtherParty(false);
       setFrame(true);
@@ -256,7 +257,6 @@ useEffect(()=>{},[report]);
           setUser2Progress(0);
           await AsyncStorage.setItem("@report",JSON.stringify(report));
           update(defaultReport)
-          setSessionData(defaultSession);
           inSession.current = false;
           switchDriver();
           router.replace('/')
@@ -268,12 +268,13 @@ useEffect(()=>{},[report]);
       { sessionData && <TouchableOpacity 
         style={[styles.homeBtn, frame && { backgroundColor : "#d6d6d6" }]}
         activeOpacity={0.8}
-        onPress={() => setFrame(true)}
-        disabled = { !frame && waitingForOtherParty }>
-        <Text style={styles.homeBtnText} onPress={async()=> {
-          const res = await createClaim(sessionData.sharedData.report as ReportBody);
+        onPress={async()=> {
+          const user = await getUser();
+          if(sessionData.createdBy === user) await createClaim(reportRef.current as ReportBody);
           setFrame(true);
-        }}>Validate Report</Text>
+        }}
+        disabled = { !frame && waitingForOtherParty }>
+        <Text style={styles.homeBtnText}>Validate Report</Text>
       </TouchableOpacity>}
     </ScrollView>
   );

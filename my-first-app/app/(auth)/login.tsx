@@ -1,6 +1,7 @@
+import { useUser } from "@/context/UserContext";
 import { loginRequest } from "@/services/api";
 import { saveToken, saveUser } from "@/services/auth";
-import { Link, router } from "expo-router";
+import { Link, router, usePathname } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
@@ -70,7 +71,7 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ username: "", password: "" });
-
+  const { userInfo, getData, userPresent, subscribeToNotifications } = useUser();
   const handleLogin = async () => {
     const newErrors = { username: "", password: "" };
     let hasError = false;
@@ -89,13 +90,20 @@ export default function Login() {
     setErrors(newErrors);
     if (hasError) return;
     try{
+      subscribeToNotifications(username);
       const data = await loginRequest(username, password);
-      if (!data) return;
       await saveToken(data.access_token, data.refresh_token, data.expires_in);
       saveUser(username);
-      router.push("/");
+      const res = await getData();
+      console.log(userInfo);
+      if(!res){
+        console.log("NO user found ");
+        return;
+      }
+      router.push("/home");
     }catch(e:any){
-      setErrors({username:e?.message, password:e?.message});
+      // setErrors({username:e?.message, password:e?.message});
+      console.log(e);
     }
   };
 

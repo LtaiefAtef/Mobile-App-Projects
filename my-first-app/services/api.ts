@@ -3,6 +3,7 @@ import { getAccessToken, getRefreshToken, getTokenExpirationDate, logout, saveTo
 import { router } from "expo-router";
 import { ReportData } from "@/context/AccidentReportContext";
 import { claimRecord } from "@/context/UserContext";
+import { NotificationRequest } from "@/constants/appData";
 
 const { debuggerHost } = Constants.expoConfig?.hostUri 
   ? { debuggerHost: Constants.expoConfig.hostUri.split(":")[0] }
@@ -224,7 +225,38 @@ export async function addClaimForUser(username :string, claimId :string) {
         throw new Error("Could not Add Claim for User");
     }
 }
+export async function addNotificationForUser(notificationRequest : NotificationRequest){
+    const token = await getToken();
+    console.log("Notification Request", notificationRequest);
+    try{
+        const res = await fetch(`${API_URL}/auth/add-notifications`,{
+            headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
+            body: JSON.stringify(notificationRequest),
+            method:"PUT"
+        })
+        if(!res.ok) console.log("Failed to add notifications",res.headers, res.status,res.body, res.statusText);
+    }catch(e){
+        throw new Error("Could not add notifications: " + e);
+    }
+}
 
+// export async function setUserPassword(username :string, currentPassword :string, newPassword :string){
+//     const token = await getToken();
+//     try{
+//         const res = await fetch(`${API_URL}/auth/modify-password`,{
+//             headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },
+//             body: JSON.stringify({
+//                 username,
+//                 currentPassword,
+//                 newPassword
+//             }),
+//             method:"PUT"
+//         })
+//         if(!res.ok) console.log("Failed to modify phone",res.headers, res.status,res.body, res.statusText);
+//     }catch(e){
+//         throw new Error("Could not Modify User: " + e);
+//     }
+// }
 // export async function getClaimByClaimId(claim : claimRecord) : Promise<claimRecord> {
 //     const token = await getToken();
 //     try{

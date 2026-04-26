@@ -6,9 +6,10 @@ import { SettingsIcon } from '@/components/ui/settings-icon';
 import { AboutIcon } from '@/components/ui/about-icon';
 import { useUser } from '@/context/UserContext';
 import { RefObject } from 'react';
-import { User } from '@/constants/appData';
+import { NotificationRequest, User } from '@/constants/appData';
 import { router } from 'expo-router';
 import { logout } from '@/services/auth';
+import { addNotificationForUser } from '@/services/api';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SIDEBAR_WIDTH = SCREEN_WIDTH * 0.72;
@@ -141,6 +142,8 @@ export function Sidebar({
           style={styles.logoutBtn}
           activeOpacity={0.7}
           onPress={async()=>{
+            const notificationsRequest : NotificationRequest = {username: userInfo?.username, notifications: userInfo?.notifications}
+            await addNotificationForUser(notificationsRequest);
             await logout();
             onClose();
             router.replace("/(auth)/login");

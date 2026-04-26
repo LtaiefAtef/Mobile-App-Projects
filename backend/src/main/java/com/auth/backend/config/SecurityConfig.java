@@ -33,6 +33,7 @@ public class SecurityConfig {
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/users/**").authenticated()
                     .requestMatchers("/sessions/**").authenticated()
+                    .requestMatchers("/notifications/**").permitAll()
                     .anyRequest().denyAll()
             )
             .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));

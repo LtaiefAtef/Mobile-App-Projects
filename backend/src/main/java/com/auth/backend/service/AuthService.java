@@ -1,5 +1,6 @@
 package com.auth.backend.service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -19,9 +20,11 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.auth.backend.dto.LoginRequest;
+import com.auth.backend.dto.NotificationRequest;
 import com.auth.backend.dto.TokenResponse;
 import com.auth.backend.dto.SignupRequest;
 import com.auth.backend.dto.User;
+import com.auth.backend.dto.User.Notification;
 import com.auth.backend.logs.BackendLogger;
 import com.auth.backend.repository.UserRepository;
 
@@ -42,7 +45,7 @@ public class AuthService {
     private final String ADMIN_CLIENT_ID       = "admin-cli";
     private final String ADMIN_USERNAME        = "admin";
     private final String ADMIN_PASSWORD        = "admin";
-
+    private final SseNotificationService notificationService;
     // ─── Keycloak Helpers ─────────────────────────────────────────────────────────
 
     private String getAdminToken() {
@@ -83,8 +86,7 @@ public class AuthService {
     }
 
     // ─── Auth ─────────────────────────────────────────────────────────────────────
-
-   public ResponseEntity<?> login(LoginRequest request) {
+    public ResponseEntity<?> login(LoginRequest request) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -252,7 +254,16 @@ public class AuthService {
             );
             Map<String, Object> user = response.getBody();
             System.out.println("User found: " + user);
-            return Boolean.TRUE.equals(user.get("emailVerified"));
+            if(Boolean.TRUE.equals(user.get("emailVerified"))){
+                System.out.println("Email verified");
+                notificationService.sendToUser(
+                    username,
+                    "Email Verified",
+                    "Your email address has been successfully verified."
+                );
+                return true;
+            }
+            return false;
         } catch (Exception e) {
             BackendLogger.logError("Email Verification Check Error", "AuthService.java", e);
             return false;
@@ -370,4 +381,19 @@ public class AuthService {
             return null;
         }
     }
+public User addNotification(NotificationRequest notification) {
+    try {
+        User user = userRepository.findByUsername(notification.getUsername())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        List<Notification> notifications = user.getNotifications();
+        notifications.addAll(notification.getNotifications());
+        user.setNotifications(notifications);
+        return userRepository.save(user);
+    } catch (Exception e) {
+        System.out.println("Error Adding Notification");
+        e.printStackTrace();
+        return null;
+    }
+}
 }

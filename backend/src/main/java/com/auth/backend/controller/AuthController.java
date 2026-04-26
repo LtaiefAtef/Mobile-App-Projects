@@ -1,5 +1,8 @@
 package com.auth.backend.controller;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -16,26 +19,37 @@ import org.springframework.web.bind.annotation.RestController;
 import com.auth.backend.dto.AdminLoginRequest;
 import com.auth.backend.dto.ChangePasswordRequest;
 import com.auth.backend.dto.LoginRequest;
+import com.auth.backend.dto.NotificationRequest;
 import com.auth.backend.dto.SignupRequest;
 import com.auth.backend.dto.TokenResponse;
 import com.auth.backend.dto.User;
 import com.auth.backend.service.AdminAuthService;
 import com.auth.backend.service.AuthService;
+import com.auth.backend.service.SseNotificationService;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
     private final AdminAuthService adminAuthService;
-    public AuthController(AuthService authService, AdminAuthService adminAuthService){
+    private final SseNotificationService notificationService;
+    public AuthController(AuthService authService, AdminAuthService adminAuthService, SseNotificationService notificationService){
         this.authService=authService;
         this.adminAuthService=adminAuthService;
+        this.notificationService=notificationService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request){
-        return authService.login(request);
+        ResponseEntity<?> auth  = authService.login(request);
+        System.out.println("user does not exists"+ auth.getStatusCode().is2xxSuccessful());
+        if(auth.getStatusCode().is2xxSuccessful()){
+            // sending notification to user alerting them of a new sign in providing the and location
+            notificationService.sendToUser(request.getUsername(), "Signed In", "Your account has been Signed In on " + LocalDate.now().toString() + " at " + LocalTime.now().toString());
+        }
+        return auth;
     }
+
     @PostMapping("/admin/login")
     public TokenResponse adminLogin(@RequestBody AdminLoginRequest request){
         return adminAuthService.login(request);
@@ -74,11 +88,18 @@ public class AuthController {
     public ResponseEntity<User> modifyFullName(@RequestBody User user){
         System.out.println(user.getFirstName() + " " + user.getLastName());
         return ResponseEntity.ok(authService.setUserFullName(user));
+    
     }
     // Modify email
     @PutMapping("/modify-email")
     public ResponseEntity<User> modifyUsername(@RequestBody User user){
-        return ResponseEntity.ok(authService.setUserEmail(user.getUsername(), user.getEmail()));
+        ResponseEntity<User> res = ResponseEntity.ok(authService.setUserEmail(user.getUsername(), user.getEmail()));
+        notificationService.sendToUser(
+            user.getUsername(),
+            "Email Updated",
+            "Your email address has been successfully updated, Please verify your email. If you did not make this change, please secure your account immediately."
+        );
+        return res;
     }
     // Modify phone number
     @PutMapping("/modify-phone")
@@ -90,6 +111,18 @@ public class AuthController {
     @PutMapping("/modify-password")
     public ResponseEntity<User> modifyPassword(@RequestBody ChangePasswordRequest request){
         System.out.println("Changing password");
-        return ResponseEntity.ok(authService.setPassword(request.getUsername(), request.getCurrentPassword(), request.getNewPassword()));
+        ResponseEntity<User> res=  ResponseEntity.ok(authService.setPassword(request.getUsername(), request.getCurrentPassword(), request.getNewPassword()));
+            notificationService.sendToUser(
+                request.getUsername(),
+                "Password Updated",
+                "Your password has been successfully updated. If you did not make this change, please secure your account immediately."
+            );
+        return res;
+    }
+    // Add Notifications
+    @PutMapping("/add-notifications")
+    public ResponseEntity<User> addNotifications(@RequestBody NotificationRequest notification){
+        System.out.println("Adding Notifications");
+        return ResponseEntity.ok(authService.addNotification(notification));
     }
 }

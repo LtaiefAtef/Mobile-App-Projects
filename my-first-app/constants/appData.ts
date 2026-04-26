@@ -77,7 +77,7 @@ export interface Contract {
 export interface SharedAccidentReportContextType {
     defaultSession: SessionData;
     sessionData: SessionData | null;
-    reportRef: any;
+    reportRef: RefObject<ReportData | null>;
     loadingSession: boolean;
     inSession : RefObject<boolean>;
     updateSession:(value :any) => void;
@@ -144,4 +144,15 @@ export interface User {
   email:string;
   password:string;
   myClaims:claimRecord[];
+  notifications : Notification[];
+}
+export interface Notification {
+    title: string;
+    message: string;
+    timestamp: number;
+}
+
+export interface NotificationRequest{
+  notifications : Notification[] | undefined;
+  username : string | undefined;
 }

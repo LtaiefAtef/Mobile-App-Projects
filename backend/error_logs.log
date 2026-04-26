@@ -1134,3 +1134,19 @@
  Location : AuthService.java
  Error    : 400 Bad Request: "{"errorMessage":"User email missing"}"
 ------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-04-24 05:41:11
+==============================
+ Location : AuthService.java
+ Error    : 409 Conflict: "{"errorMessage":"User exists with same email"}"
+------------------------------>
+
+==============================
+ Error updating Session
+ Date: 2026-04-24 06:14:36
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>

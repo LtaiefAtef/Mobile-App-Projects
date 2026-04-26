@@ -13,15 +13,12 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { Sidebar } from '@/components/side-bar';
 import { UserProvider, useUser } from '@/context/UserContext';
 import { User } from '@/constants/appData';
 import { NotificationIcon } from '@/components/ui/notification-icon';
-
 export const unstable_settings = { anchor: '(tabs)' };
-
-
 
 const C = {
   bg: '#F5F4F0',
@@ -45,7 +42,6 @@ const HamburgerButton = ({ onPress }: { onPress: () => void }) => (
     <View style={styles.hamburgerLine} />
   </TouchableOpacity>
 );
-
 // ─── App Content ──────────────────────────────────────────────────────────────
 function AppContent() {
   const colorScheme = useColorScheme();
@@ -54,11 +50,12 @@ function AppContent() {
   const router = useRouter();
 
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [navigatorReady, setNavigatorReady] = useState(true);
   const slideAnim = useRef(new Animated.Value(0)).current;
-  const { userInfo, getData, userPresent } = useUser();
-  const { user1Progress, user2Progress} = useAccidentReport();
+  const { userInfo, userPresent, getData, hasNotifications, setHasNotifications } = useUser();
+  const { user1Progress, user2Progress } = useAccidentReport();
   const [user, setUser] = useState<User | null>(null);
-  const openSidebar = useCallback(async() => {
+  const openSidebar = useCallback(async () => {
     setSidebarVisible(true);
     Animated.spring(slideAnim, {
       toValue: 1,
@@ -66,13 +63,7 @@ function AppContent() {
       tension: 80,
       friction: 10,
     }).start();
-    if(!userPresent.current){
-      const data = await getData();
-      if(!data){
-        router.replace("/(auth)/login");
-      }
-      setUser(data);
-    }
+    setUser(userInfo.current);
   }, [slideAnim]);
 
   const closeSidebar = useCallback(() => {
@@ -96,14 +87,22 @@ function AppContent() {
     [openSidebar]
   );
 
-const homeHeaderOptions = {
-  headerShown: true,
-  title: 'Home',
-  headerLeft: hamburgerHeaderLeft,
-  headerShadowVisible: false,
-  headerStyle: { backgroundColor: C.bg },
-  headerRight: () => <NotificationIcon hasNotification={false} onPress={()=> router.push("/notifications")} />,
-};
+  const homeHeaderOptions = {
+    headerShown: true,
+    title: 'Home',
+    headerLeft: hamburgerHeaderLeft,
+    headerShadowVisible: false,
+    headerStyle: { backgroundColor: C.bg },
+    headerRight: () => (
+      <NotificationIcon
+        hasNotification={hasNotifications}
+        onPress={() => {
+          setHasNotifications(false);
+          router.push('/notifications')
+        }}
+      />
+    ),
+  };
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -111,14 +110,15 @@ const homeHeaderOptions = {
         <StepProgressBar
           user1Step={sessionData?.sharedData?.user1Progress || user1Progress || 0}
           user2Step={sessionData?.sharedData?.user2Progress || user2Progress || 0}
-          user1Label={sessionData?.createdBy || "You"}
-          user2Label={sessionData?.participants[1] || "Other User"}
+          user1Label={sessionData?.createdBy || 'You'}
+          user2Label={sessionData?.participants[1] || 'Other User'}
         />
       )}
-
-      <Stack>
+      <Stack
+      >
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         <Stack.Screen name="index" options={homeHeaderOptions} />
+        <Stack.Screen name="home" options={homeHeaderOptions} />
         <Stack.Screen name="(auth)/login"        options={{ headerShown: false }} />
         <Stack.Screen name="(auth)/signup"       options={{ headerShown: false }} />
         <Stack.Screen name="(auth)/verify-email" options={{ headerShown: false }} />
@@ -127,12 +127,13 @@ const homeHeaderOptions = {
         <Stack.Screen name="(accident_report)/step-3" options={{ headerShown: false }} />
         <Stack.Screen name="(accident_report)/step-4" options={{ headerShown: false }} />
         <Stack.Screen name="(accident_report)/step-5" options={{ headerShown: false }} />
+        <Stack.Screen name="(accident_report)/step-6" options={{ headerShown: false }} />
         <Stack.Screen name="(shared_accident_report)/room"    options={{ title: 'Session Room' }} />
         <Stack.Screen name="(shared_accident_report)/session" options={{ title: 'Session Page' }} />
         <Stack.Screen name="(accident_report)/sheet"          options={{ title: 'Successful Report' }} />
         <Stack.Screen name="(account_setup)/setup"            options={{ title: 'Account Setup' }} />
-        <Stack.Screen name="profile"                         options={{ title: 'Profile' }} />
-        <Stack.Screen name="notifications"                         options={{ title: 'Notifications' }} />
+        <Stack.Screen name="profile"                          options={{ title: 'Profile' }} />
+        <Stack.Screen name="notifications"                    options={{ title: 'Notifications' }} />
       </Stack>
 
       <Sidebar
@@ -150,6 +151,7 @@ const homeHeaderOptions = {
 }
 
 export default function RootLayout() {
+
   return (
     <UserProvider>
       <SharedAccidentReportProvider>
@@ -161,22 +163,21 @@ export default function RootLayout() {
   );
 }
 
-const styles  = StyleSheet.create({
-      // Hamburger
-      hamburger: {
-        width: 30,
-        height: 30,
-        justifyContent: 'center',
-        gap: 5,
-        paddingHorizontal: 4,
-        marginLeft: Platform.OS === 'ios' ? 8 : 4,
-        marginInline:20,
-        borderRadius:50
-      },
-      hamburgerLine: {
-        height: 2,
-        backgroundColor: C.text,
-        borderRadius: 2,
-        width: '100%',
-      },
-})
+const styles = StyleSheet.create({
+  hamburger: {
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 4,
+    marginLeft: Platform.OS === 'ios' ? 8 : 4,
+    marginInline: 20,
+    borderRadius: 50,
+  },
+  hamburgerLine: {
+    height: 2,
+    backgroundColor: C.text,
+    borderRadius: 2,
+    width: '100%',
+  },
+});
