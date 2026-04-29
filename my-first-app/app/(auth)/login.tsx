@@ -102,7 +102,7 @@ export default function Login() {
       }
       router.push("/home");
     }catch(e:any){
-      // setErrors({username:e?.message, password:e?.message});
+      setErrors({username:e?.message, password:e?.message});
       console.log(e);
     }
   };

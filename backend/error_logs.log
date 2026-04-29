@@ -1150,3 +1150,27 @@
  Location : backend\src\main\java\com\auth\backend\service\SessionService.java
  Error    : Session not found: 
 ------------------------------>
+
+==============================
+ Resend Verification Error
+ Date: 2026-04-29 10:11:36
+==============================
+ Location : AuthService.java
+ Error    : 500 Internal Server Error: "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Resend Verification Error
+ Date: 2026-04-29 10:12:48
+==============================
+ Location : AuthService.java
+ Error    : 500 Internal Server Error: "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Resend Verification Error
+ Date: 2026-04-29 10:19:26
+==============================
+ Location : AuthService.java
+ Error    : 500 Internal Server Error: "{"errorMessage":"Failed to send verify email"}"
+------------------------------>

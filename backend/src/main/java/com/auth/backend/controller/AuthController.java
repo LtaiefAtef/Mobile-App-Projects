@@ -38,7 +38,6 @@ public class AuthController {
         this.adminAuthService=adminAuthService;
         this.notificationService=notificationService;
     }
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request){
         ResponseEntity<?> auth  = authService.login(request);
@@ -94,11 +93,13 @@ public class AuthController {
     @PutMapping("/modify-email")
     public ResponseEntity<User> modifyUsername(@RequestBody User user){
         ResponseEntity<User> res = ResponseEntity.ok(authService.setUserEmail(user.getUsername(), user.getEmail()));
-        notificationService.sendToUser(
-            user.getUsername(),
-            "Email Updated",
-            "Your email address has been successfully updated, Please verify your email. If you did not make this change, please secure your account immediately."
-        );
+        if(res.getStatusCode().is2xxSuccessful()){
+            notificationService.sendToUser(
+                user.getUsername(),
+                "Email Updated",
+                "Your email address has been successfully updated, Please verify your email. If you did not make this change, please secure your account immediately."
+            );
+        }
         return res;
     }
     // Modify phone number
@@ -112,11 +113,13 @@ public class AuthController {
     public ResponseEntity<User> modifyPassword(@RequestBody ChangePasswordRequest request){
         System.out.println("Changing password");
         ResponseEntity<User> res=  ResponseEntity.ok(authService.setPassword(request.getUsername(), request.getCurrentPassword(), request.getNewPassword()));
+        if(res.getStatusCode().is2xxSuccessful()){
             notificationService.sendToUser(
                 request.getUsername(),
                 "Password Updated",
                 "Your password has been successfully updated. If you did not make this change, please secure your account immediately."
             );
+        }
         return res;
     }
     // Add Notifications

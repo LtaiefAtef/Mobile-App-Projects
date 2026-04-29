@@ -81,9 +81,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
             userInfo.current.notifications.unshift({
                 title: data.title,
                 message: data.message,
-                timestamp: new Date().getTime(),
-            })
-            
+                timestamp: new Date().getTime().toString(),
+            });
+            userInfo.current.notifications.sort( (a, b) => Number(b.timestamp) - Number(a.timestamp));
             if(onNotifications) onNotifications();
         });
 

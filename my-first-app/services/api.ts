@@ -239,7 +239,6 @@ export async function addNotificationForUser(notificationRequest : NotificationR
         throw new Error("Could not add notifications: " + e);
     }
 }
-
 // export async function setUserPassword(username :string, currentPassword :string, newPassword :string){
 //     const token = await getToken();
 //     try{

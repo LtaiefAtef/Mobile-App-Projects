@@ -149,7 +149,7 @@ export interface User {
 export interface Notification {
     title: string;
     message: string;
-    timestamp: number;
+    timestamp: string;
 }
 
 export interface NotificationRequest{

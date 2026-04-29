@@ -4,7 +4,7 @@ import com.auth.backend.dto.User;
 import com.auth.backend.dto.Contract;
 import com.auth.backend.dto.AddClaimRequest;
 import com.auth.backend.dto.Claim;
-
+import com.auth.backend.service.SseNotificationService;
 import com.auth.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-
+    private final SseNotificationService notificationService;
     // GET /api/users
     @GetMapping
     public ResponseEntity<List<User>> getUsers(
@@ -64,7 +64,8 @@ public class UserController {
     @PostMapping("/create-claim")
     public ResponseEntity<Claim> createClaim(@RequestBody Claim claim){
         System.out.println("Recieved Claim Create Request");
-        return ResponseEntity.ok(userService.createClaim(claim));
+        ResponseEntity<Claim> res =  ResponseEntity.ok(userService.createClaim(claim));
+        return res;
     }
     @PostMapping("/set-account-claim")
     public ResponseEntity<User> addClaimForUser(@RequestBody AddClaimRequest addClaimRequest){
