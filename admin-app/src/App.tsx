@@ -8,6 +8,7 @@ import Contract from './pages/Contract'
 import Clients from './pages/Clients'
 import Claims from './pages/Claim'
 import CreateContract from './pages/CreateContract'
+import TEST from './pages/Test'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path='/clients' element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path='/claims' element={<ProtectedRoute><Claims /></ProtectedRoute>} />
             <Route path='/create-contract' element={<ProtectedRoute><CreateContract /></ProtectedRoute>} />
+            <Route path='/test' element={<TEST/>} />
             <Route path='*' element={<Navigate to='/' replace />} />
           </Routes>
         </main>

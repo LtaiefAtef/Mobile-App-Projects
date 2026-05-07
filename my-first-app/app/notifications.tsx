@@ -77,7 +77,6 @@ export default function Notifications() {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({ item, index }) => {
           const isUnread = index < 2;
-          console.log("Notification item:", item);
           return (
             <TouchableOpacity
               style={[styles.item, isUnread && styles.itemUnread]}
@@ -103,13 +102,7 @@ export default function Notifications() {
                     {item.title}
                   </Text>
                   <Text style={styles.time}>
-                    {new Date(Number(item.timestamp)).toLocaleString('en-GB', {
-                      day: '2-digit',
-                      month: 'short', 
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {item.timestamp}
                   </Text>
                 </View>
                 <Text style={styles.message} numberOfLines={2}>

@@ -10,11 +10,12 @@ const { debuggerHost } = Constants.expoConfig?.hostUri
   : { debuggerHost: "localhost" };
 
 export const API_URL = `http://${debuggerHost}:8081`;
+export const ComfyUIServerURL = "http://192.168.1.15:5000";
 // Get Token function
 export async function getToken(): Promise<string | null> {
     const token = await getAccessToken();
     if (!token) {
-        router.replace("/login");
+        router.replace("/(auth)/login");
         return null;
     }
 
@@ -29,7 +30,7 @@ export async function getToken(): Promise<string | null> {
 
         if (!res.ok) {
             await logout();
-            router.replace("/login");
+            router.replace("/(auth)/login");
             throw new Error('Session Expired');
         }
 
@@ -227,7 +228,6 @@ export async function addClaimForUser(username :string, claimId :string) {
 }
 export async function addNotificationForUser(notificationRequest : NotificationRequest){
     const token = await getToken();
-    console.log("Notification Request", notificationRequest);
     try{
         const res = await fetch(`${API_URL}/auth/add-notifications`,{
             headers: { Authorization: `Bearer ${token}`, "Content-Type":"application/json" },

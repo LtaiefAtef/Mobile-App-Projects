@@ -1,26 +1,14 @@
-import { SessionData, SessionState } from "@/constants/appData";
-import { useAccidentReport } from "@/context/AccidentReportContext";
-import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
-import { createClaim } from "@/services/api";
-import { checkIfAuthor, getUser } from "@/services/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native";
+import { View } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  PanResponder,
-  ScrollView,
-  Alert,
-  GestureResponderEvent,
-  Platform,
-  KeyboardAvoidingView,
-} from "react-native";
-import Svg, { Path } from "react-native-svg";
-
-// --- Design tokens (matches your app) ---
+import { CircumstancesVehicle, useAccidentReport } from "@/context/AccidentReportContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSharedAccidentReport } from "@/context/SharedAccidentReportContext";
+import { checkIfAuthor, getUser } from "@/services/auth";
+import { SessionData } from "@/constants/appData";
+// --- Design tokens ---
 const C = {
   bg: '#F5F4F0',
   card: '#FFFFFF',
@@ -35,206 +23,262 @@ const C = {
   removeBg: '#FDF0EE',
   addBg: '#1A1A18',
   addText: '#FFFFFF',
+  switchTrue: '#1A1A18',
   inputBg: '#FAFAF8',
 };
-
+// --- StyledInput Component ---
+const StyledInput = ({
+    value,
+    onChangeText,
+    placeholder,
+    multiline,
+    keyboardType,
+    editable,
+    }: {
+    value: string;
+    onChangeText: (v: string) => void;
+    placeholder?: string;
+    multiline?: boolean;
+    keyboardType?: 'default' | 'numeric';
+    editable?: boolean;
+    }) => {
+    const [focused, setFocused] = useState(false);
+    return (
+    <TextInput
+        style={[
+        styles.input,
+        multiline && styles.inputMultiline,
+        focused && styles.inputFocused,
+        editable === false && styles.inputDisabled,
+        ]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder ?? ''}
+        placeholderTextColor={C.textPlaceholder}
+        multiline={multiline}
+        keyboardType={keyboardType ?? 'default'}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        textAlignVertical={multiline ? 'top' : 'center'}
+        editable={editable !== false}
+    />
+    );
+    };
 // --- SectionTitle Component ---
 const SectionTitle = ({ children }: { children: string }) => (
   <Text style={styles.sectionTitle}>{children}</Text>
 );
-
 // --- FieldLabel Component ---
 const FieldLabel = ({ children }: { children: string }) => (
   <Text style={styles.fieldLabel}>{children}</Text>
 );
-
-// --- Build SVG string from drawn paths ---
-const buildSvgString = (paths: string[], width: number, height: number): string => {
-  const pathElements = paths
-    .map(d => `<path d="${d}" stroke="#1A1A18" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`)
-    .join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="120" viewBox="0 0 ${width} ${height}">${pathElements}</svg>`;
+// --- Circumstances Labels ---
+const CIRCUMSTANCES_LABELS: Record<string, string> = {
+  parkedStationary: "Parked / Stationary",
+  leavingParkingOrDriveway: "Leaving parking or driveway",
+  enteringParkingOrDriveway: "Entering parking or driveway",
+  exitingParkingLotOrPrivateLand: "Exiting parking lot / private land",
+  enteringRoundabout: "Entering a roundabout",
+  alreadyInRoundabout: "Already in roundabout",
+  rearEndSameDirection: "Rear-end (same direction)",
+  changingLanes: "Changing lanes",
+  overtaking: "Overtaking",
+  turningRight: "Turning right",
+  turningLeft: "Turning left",
+  reversing: "Reversing",
+  crossingWrongSideOfRoad: "Crossing on wrong side of road",
+  crossingIntersection: "Crossing an intersection",
+  ranRedLight: "Ran a red light",
+  failedToYieldRightOfWay: "Failed to yield right of way",
 };
+// --- Checkbox Component ---
+const Checkbox = ({
+  label,
+  checked,
+  onToggle,
+}: {
+  label: string;
+  checked: boolean;
+  onToggle: () => void;
+}) => (
+  <TouchableOpacity
+    style={[styles.circumstanceOption, checked && styles.circumstanceOptionChecked]}
+    onPress={onToggle}
+    activeOpacity={0.8}>
+    <Text style={[styles.circumstanceOptionText, checked && styles.circumstanceOptionTextChecked]}>
+      {checked ? '✓ ' : ''}{label}
+    </Text>
+  </TouchableOpacity>
+);
+// --- Main COmponent --- 
+export default function Step5() {
 
-export default function Step5(): React.JSX.Element {
-    const [agreed, setAgreed] = useState<boolean>(false);
-    const currentPathRef = useRef<string>("");
-    const [paths, setPaths] = useState<string[]>([]);
-    const [currentPath, setCurrentPath] = useState<string>("");
-    const [isSigned, setIsSigned] = useState<boolean>(false);
-
-    const panResponder = useRef(
-    PanResponder.create({
-        onStartShouldSetPanResponder: (): boolean => true,
-        onMoveShouldSetPanResponder: (): boolean => true,
-
-        onPanResponderGrant: (evt: GestureResponderEvent): void => {
-        const { locationX, locationY } = evt.nativeEvent;
-        const newPath = `M${locationX},${locationY}`;
-        currentPathRef.current = newPath;
-        setCurrentPath(newPath);
-        setIsSigned(true);
-        },
-
-        onPanResponderMove: (evt: GestureResponderEvent): void => {
-        const { locationX, locationY } = evt.nativeEvent;
-        const updated = `${currentPathRef.current} L${locationX},${locationY}`;
-        currentPathRef.current = updated;
-        setCurrentPath(updated);
-        },
-
-        onPanResponderRelease: (): void => {
-        const finalPath = currentPathRef.current;
-        if (finalPath) {
-            setPaths((prev: string[]) => [...prev, finalPath]);
-        }
-        currentPathRef.current = "";
-        setCurrentPath("");
-        },
-    })
-    ).current;
-  const handleClear = (): void => {
-    setPaths([]);
-    setCurrentPath("");
-    setIsSigned(false);
-  };
-
-
-  const toggleAgreed = (): void => setAgreed((prev: boolean) => !prev);
-//  --- Saving Signature and redirecting to next step ---
-    const { report, update, selectedDriver, switchDriver, setUser1Progress, setUser2Progress } = useAccidentReport();
-    const { sessionData, updateBackendSession, setSessionData, inSession } = useSharedAccidentReport();
-    const router = useRouter();
-    const saveAndRedirect = async() => {
-        const svgData = buildSvgString(paths, 350, 420);
-        if(inSession.current && sessionData){
-          const isAuthor = await checkIfAuthor(sessionData.createdBy);
-          if(isAuthor){
-            setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:6 } }));
-            update({ signatures: { vehicleA: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
-            updateBackendSession({ ...sessionData.sharedData, user1Progress:6, sender:sessionData?.createdBy, report, action:"final" })
-            console.log("HOST COMPLETED STEP 5");
-          }else{
-            const user = await getUser();
-            setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user2Progress:6 } }));
-            update({ signatures: { vehicleB: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
-            updateBackendSession({ ...sessionData.sharedData, user2Progress:6,sender:user, report, action:"final" })
-            console.log("GUEST COMPLETED STEP 5");
-          }
-          await AsyncStorage.setItem('@accident_report', JSON.stringify(report));
-          router.push("/(accident_report)/sheet");
-          return;
-        }
-        if(selectedDriver === "driverA"){
-            console.log("OH IF???",selectedDriver)
-            setUser2Progress(2);
-            setUser1Progress(6);
-            update({ signatures: { vehicleA: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
-            switchDriver();
-            router.push("/(accident_report)/step-2");
-        }else{
-            console.log("OH ELSE???",selectedDriver)
-            setUser2Progress(6);
-            update({ signatures: { vehicleB: { signed:isSigned, signedAt:new Date().toDateString(), svgData } } });
-            try {
-                router.push("/(accident_report)/sheet");
-            } catch (e) {
-                console.error("Failed to save report:", e);
-            }
-        }
-    }
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        style={styles.screen}
-        contentContainerStyle={styles.screenContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Page Title */}
-        <Text style={styles.pageTitle}>Sign the Agreement</Text>
-
-        {/* Signature Card */}
-        <View style={styles.card}>
-          <SectionTitle>Your Signature</SectionTitle>
-          <FieldLabel>Draw your signature in the space below</FieldLabel>
-
-          {/* Canvas */}
-          <View style={styles.canvasWrapper} {...panResponder.panHandlers}>
-            <Svg style={styles.canvas}>
-              {paths.map((d: string, i: number) => (
-                <Path
-                  key={i}
-                  d={d}
-                  stroke={C.text}
-                  strokeWidth={2.5}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              ))}
-              {currentPath ? (
-                <Path
-                  d={currentPath}
-                  stroke={C.text}
-                  strokeWidth={2.5}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              ) : null}
-            </Svg>
-
-            {!isSigned && (
-              <View style={styles.placeholder} pointerEvents="none">
-                <Text style={styles.placeholderText}>✍️  Sign here</Text>
-              </View>
-            )}
-          </View>
-
-          {/* Baseline */}
-          <View style={styles.signatureLine} />
-          <Text style={styles.signatureHint}>Sign above the line</Text>
-
-          {/* Clear Button */}
-          <TouchableOpacity onPress={handleClear} style={styles.clearBtn}>
-            <Text style={styles.clearBtnText}>🗑  Clear</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Agreement Checkbox */}
-        <View style={styles.card}>
-          <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={toggleAgreed}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
-              {agreed && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.checkboxLabel}>
-              I have read and agree to the{" "}
-              <Text style={styles.link}>Terms & Conditions</Text> and{" "}
-              <Text style={styles.link}>Privacy Policy</Text>.
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Submit Button */}
-        <TouchableOpacity
-            onPress={()=>saveAndRedirect()}
-            style={[styles.addBtn, (!isSigned || !agreed) && styles.addBtnDisabled]}
-            activeOpacity={0.8}
-        >
-          <Text style={styles.addBtnText} >Submit & Sign</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
+// --- Date of birth ---
+const [dateFrame, setDateFrame ] = useState(false)
+const [date, setDate] = useState<Date>(new Date())
+// --- Change Date function ---
+function changeDate(_: any, selectedDate?: Date | null){
+  setDateFrame(false);
+  if(selectedDate) setDate(selectedDate);
 }
+// --- Driver Information ---
+const [fullName, setFullName] = useState<string>("")
+const [address, setAdress] = useState<string>("");
+const [visibleDamage, setVisibleDamage] = useState<string>("");
+const [accidentPrespective, setAccidentPrespective] = useState< string>("");
+const [circumstances, setCircumstances] = useState<CircumstancesVehicle>({
+  parkedStationary: false,
+  leavingParkingOrDriveway: false,
+  enteringParkingOrDriveway: false,
+  exitingParkingLotOrPrivateLand: false,
+  enteringRoundabout: false,
+  alreadyInRoundabout: false,
+  rearEndSameDirection: false,
+  changingLanes: false,
+  overtaking: false,
+  turningRight: false,
+  turningLeft: false,
+  reversing: false,
+  crossingWrongSideOfRoad: false,
+  crossingIntersection: false,
+  ranRedLight: false,
+  failedToYieldRightOfWay: false,
+  totalChecked:0
+});
+// --- Toggle CheckBox ---
+const toggleCircumstance = (key: keyof typeof circumstances) => {
+  setCircumstances(prev => ({ ...prev, [key]: !prev[key] }));
+};
+// --- Expo Router ---
+const router = useRouter();
+// --- Save Step 4 and Redirect ---
+const { selectedDriver, reportDataRef, switchDriver, setUser1Progress, setUser2Progress } = useAccidentReport();
+const { sessionData, updateBackendSession, setSessionData, inSession } = useSharedAccidentReport();
+const saveAndRedirect = async()=>{
+  const totalChecked = Object.keys(circumstances).filter(key => circumstances[key as keyof CircumstancesVehicle] === true).length;
+  if(inSession.current && sessionData){
+    const isAuthor = await checkIfAuthor(sessionData.createdBy);
+    if(isAuthor){
+      updateBackendSession({ ...sessionData.sharedData, user1Progress:6,sender:sessionData?.createdBy, action:"progress" })
+      setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user1Progress:6 } })
+      )
+    }
+    else{
+      const user = await getUser();
+      updateBackendSession({ ...sessionData.sharedData, user2Progress:6, sender:user, action:"progress" })
+      setSessionData((prev : SessionData) => ({ ...prev, sharedData:{ ...prev.sharedData, user2Progress:6 } })
+      )
+      switchDriver();
+    }
+  }
+  if(selectedDriver === "driverA"){
+    if(!inSession.current){
+      setUser1Progress(6);
+    }
+    reportDataRef.current = { ...reportDataRef.current,
+      driver: {
+        ...reportDataRef.current.driver,
+        driverA: { ...reportDataRef.current.driver.driverA, fullName, address, dateOfBirth:date.toDateString()},
+      },
+      visibiledamage: {
+        ...reportDataRef.current.visibiledamage,
+        vehicleA: visibleDamage,
+      },
+      accidentPerspective: {
+        ...reportDataRef.current.accidentPerspective,
+        driverA: accidentPrespective,
+      },
+      circumstances: {
+        ...reportDataRef.current.circumstances,
+        vehicleA: { ...circumstances, totalChecked },
+      },
+    }
+  }else{
+    if(!inSession.current){
+      setUser2Progress(6)
+    }
+    reportDataRef.current = { ...reportDataRef.current,
+      driver: {
+        ...reportDataRef.current.driver,
+        driverB: { ...reportDataRef.current.driver.driverB, fullName, address, dateOfBirth:date.toDateString() },
+      },
+      visibiledamage: {
+        ...reportDataRef.current.visibiledamage,
+        vehicleB: visibleDamage,
+      },
+      accidentPerspective: {
+        ...reportDataRef.current.accidentPerspective,
+        driverB: accidentPrespective,
+      },
+      circumstances: {
+        ...reportDataRef.current.circumstances,
+        vehicleB: { ...circumstances, totalChecked },
+      },
+    };
+  }
+  router.push("/(accident_report)/step-6");
+}
+return (
+    <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+        <ScrollView 
+          style={styles.screen} 
+          contentContainerStyle={styles.screenContent} 
+          keyboardShouldPersistTaps="handled" 
+          showsVerticalScrollIndicator={false}>
+            <Text style={styles.pageTitle}>Contract Info</Text>
+            {/* --- Driver Section --- */}
+            <View style={styles.card}>
+                <SectionTitle>Driver Information</SectionTitle>
+                <FieldLabel>Fullname</FieldLabel>
+                <StyledInput placeholder="Fullname" keyboardType="default" onChangeText={ v => setFullName(v) } value={fullName}/>
+                <FieldLabel>Address</FieldLabel>
+                <StyledInput placeholder="Address" keyboardType="default" onChangeText={ v => setAdress(v) } value={address}/>
+                <FieldLabel>Date of birth</FieldLabel>
+                <TouchableOpacity
+                  style={styles.dateField}
+                  onPress={() => setDateFrame(!dateFrame)}
+                  activeOpacity={0.7}>
+                  <Text style={styles.dateText}>{date.toDateString()}</Text>
+                </TouchableOpacity>
+                {dateFrame && <DateTimePicker 
+                    testID="dateTimePicker"
+                    value={date}
+                    mode="date"
+                    is24Hour={true}
+                    display="default"
+                    onChange={changeDate}
+                ></DateTimePicker>}
+            </View>
+            {/* --- Damage Section --- */}
+            <View style={styles.card}>
+                <SectionTitle>Damage Information</SectionTitle>
+                <FieldLabel>Visible Damage</FieldLabel>
+                <StyledInput placeholder="" keyboardType="default" onChangeText={v => setVisibleDamage(v)} value={visibleDamage} multiline/>
+                <FieldLabel>Accident Prespective</FieldLabel>
+                <StyledInput placeholder="Your perspective of the accident" keyboardType="default" onChangeText={v => setAccidentPrespective(v)} value={accidentPrespective} multiline/>
+                <FieldLabel>Circumstances</FieldLabel>
+                <View style={styles.circumstancesGrid}>
+                  {(Object.keys(circumstances) as Array<keyof typeof circumstances>).map(key => (
+                    key !== "totalChecked" && <Checkbox
+                      key={key}
+                      label={CIRCUMSTANCES_LABELS[key]}
+                      checked={circumstances[key]}
+                      onToggle={() => toggleCircumstance(key)}
+                    />
+                  ))}
+                </View>
+            </View>
+            <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={ saveAndRedirect }>
+              <Text style={styles.addBtnText}>Next</Text>
+            </TouchableOpacity>
+        </ScrollView>
+    </KeyboardAvoidingView>);
+}
+
+// --- Styles ---
 
 const styles = StyleSheet.create({
   screen: {
@@ -242,6 +286,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.bg,
   },
   screenContent: {
+    paddingVertical:150,
     padding: 16,
     paddingBottom: 40,
     gap: 12,
@@ -273,94 +318,115 @@ const styles = StyleSheet.create({
     color: C.label,
     marginBottom: 4,
   },
-  canvasWrapper: {
-    height: 420,
+  input: {
     backgroundColor: C.inputBg,
-    borderRadius: 8,
     borderWidth: 1,
     borderColor: C.border,
-    overflow: "hidden",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 11 : 9,
+    fontSize: 14,
+    color: C.text,
   },
-  canvas: {
+  inputFocused: {
+    borderColor: C.borderFocus,
+    backgroundColor: C.card,
+  },
+  inputMultiline: {
+    minHeight: 88,
+    paddingTop: 11,
+  },
+  inputDisabled: {
+    opacity: 0.6,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  locationInputWrapper: {
     flex: 1,
-    width: "100%",
-    height: "100%",
   },
-  placeholder: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
+  locateBtn: {
+    backgroundColor: C.addBg,
+    borderRadius: 8,
+    paddingVertical: Platform.OS === 'ios' ? 11 : 9,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  placeholderText: {
-    fontSize: 16,
-    color: C.textPlaceholder,
-    fontStyle: "italic",
+  locateBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.addText,
   },
-  signatureLine: {
+  dateField: {
+    backgroundColor: C.inputBg,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 11 : 9,
+  },
+  dateText: {
+    fontSize: 14,
+    color: C.text,
+  },
+  errorText: {
+    fontSize: 12,
+    color: C.removeRed,
+    marginTop: -4,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  switchLabel: {
+    fontSize: 14,
+    color: C.text,
+    flex: 1,
+    paddingRight: 12,
+  },
+  divider: {
     height: 1,
     backgroundColor: C.border,
-    marginTop: -4,
+    marginVertical: 2,
   },
-  signatureHint: {
-    fontSize: 11,
+  emptyText: {
+    fontSize: 13,
     color: C.textMuted,
-    textAlign: "center",
-    marginTop: -4,
+    fontStyle: 'italic',
   },
-  clearBtn: {
-    alignSelf: "flex-end",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+  witnessBlock: {
+    gap: 8,
+  },
+  witnessBlockHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  witnessIndex: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  removeBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: C.removeBg,
     borderRadius: 6,
-    borderWidth: 1,
-    borderColor: C.border,
-    backgroundColor: C.bg,
   },
-  clearBtnText: {
+  removeBtnText: {
     fontSize: 12,
     fontWeight: '500',
     color: C.removeRed,
   },
-  checkboxRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    borderColor: C.border,
-    backgroundColor: C.inputBg,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 1,
-  },
-  checkboxChecked: {
-    backgroundColor: C.addBg,
-    borderColor: C.addBg,
-  },
-  checkmark: {
-    color: C.addText,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  checkboxLabel: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '500',
-    color: C.label,
-    lineHeight: 20,
-  },
-  link: {
-    color: C.text,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
+  fieldGap: {
+    height: 2,
   },
   addBtn: {
     backgroundColor: C.addBg,
@@ -369,13 +435,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
-  addBtnDisabled: {
-    opacity: 0.4,
-  },
   addBtnText: {
     fontSize: 14,
     fontWeight: '600',
     color: C.addText,
     letterSpacing: 0.2,
+  },
+    circumstancesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  circumstanceOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: C.inputBg,
+  },
+  circumstanceOptionChecked: {
+    backgroundColor: C.addBg,
+    borderColor: C.addBg,
+  },
+  circumstanceOptionText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: C.textMuted,
+  },
+  circumstanceOptionTextChecked: {
+    color: C.addText,
+    fontWeight: '600',
   },
 });

@@ -76,10 +76,10 @@ export interface Contract {
 // --- Interface ---
 export interface SharedAccidentReportContextType {
     defaultSession: SessionData;
-    sessionData: SessionData | null;
-    reportRef: RefObject<ReportData | null>;
+    sessionData: SessionData;
     loadingSession: boolean;
     inSession : RefObject<boolean>;
+    sessionDataRef : RefObject<SessionData>;
     updateSession:(value :any) => void;
     toggleLoadingSession:() => void;
     connectWS:(code :string) => void;
@@ -88,9 +88,11 @@ export interface SharedAccidentReportContextType {
     joinSession(code :string, user :string):Promise<SessionData  | null>;
     updateBackendSession(sharedData : any) : Promise<SessionData | null>;
     setSessionData:(value : any) => void;
+    resetSession:() => void;
 }
-export type Message = {
-  text: string;
+export type GenerationResponse = {
+  job_ids: string[];
+  status: string;
 }
 // --- Session Data Type ---
 export type SessionData = {
@@ -105,7 +107,7 @@ export type SessionData = {
       sender: string,
       triggerHostAction: boolean,
       triggerGuestAction: boolean,
-      report: ReportData | null
+      reportDataRef: RefObject<ReportData>;
     };
     sender:string;
     action:string;

@@ -44,7 +44,7 @@ public class AuthController {
         System.out.println("user does not exists"+ auth.getStatusCode().is2xxSuccessful());
         if(auth.getStatusCode().is2xxSuccessful()){
             // sending notification to user alerting them of a new sign in providing the and location
-            notificationService.sendToUser(request.getUsername(), "Signed In", "Your account has been Signed In on " + LocalDate.now().toString() + " at " + LocalTime.now().toString());
+            notificationService.sendToUser(request.getUsername(), "Signed In", "Your account has been Signed In on ");
         }
         return auth;
     }

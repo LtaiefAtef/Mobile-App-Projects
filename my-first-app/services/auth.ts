@@ -24,7 +24,8 @@ export async function getRefreshToken(){
 }
 
 export async function checkIfAuthor(user :string) {
-    return await AsyncStorage.getItem("username") == user;
+    console.log(user);
+    return await AsyncStorage.getItem("username") === user;
 }
 export async function getTokenExpirationDate(): Promise<number | null> {
     const expiresAt = await AsyncStorage.getItem("expires_at");

@@ -110,7 +110,7 @@ export default function Room() {
                         style={[styles.copyButton,((sessionData?.participants ?? []).length < 2 || !isAuthor) 
                             && {backgroundColor:"#ececec"}]} 
                         onPress={()=>{if(isAuthor == false) return;
-                        updateBackendSession({ user1Progress:1, user2Progress:2, sender:sessionData?.createdBy, action:"start session" })}}>
+                        updateBackendSession({ user1Progress:1, user2Progress:3, sender:sessionData?.createdBy, action:"start session" })}}>
                         <Text style={styles.copyButtonText}>Continue</Text>
                     </TouchableOpacity>
   

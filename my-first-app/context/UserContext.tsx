@@ -1,4 +1,4 @@
-import { User } from "@/constants/appData";
+import { GenerationResponse, User } from "@/constants/appData";
 import { API_URL, getUserInfo } from "@/services/api";
 import { getUser } from "@/services/auth";
 import { createContext, Dispatch, ReactNode, RefObject, SetStateAction, useContext, useEffect, useRef, useState } from "react";
@@ -10,6 +10,7 @@ interface UserContextType {
     userInfo: RefObject<User>;
     userPresent: RefObject<boolean>;
     userClaims: claimRecord[];
+    jobs : RefObject<GenerationResponse | null >;
     notificationPermitted: RefObject<boolean>;
     getData: () => Promise<User | null>;
     subscribeToNotifications: (username: string, onNotifications?: () => void) => void;
@@ -36,6 +37,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [userClaims, setUserClaims] = useState<claimRecord[]>([]);
     const [hasNotifications, setHasNotifications]  = useState(false);
     const notificationPermitted = useRef(false);
+    // --- Jobs ---
+    const jobs = useRef(null);
     const path = usePathname();
     const userInfo = useRef<User>({
         myClaims: [],
@@ -73,7 +76,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         // Incoming notification
         eventSource.current.addEventListener('notification', (e: any) => {
             const data = JSON.parse(e.data);
-            console.log("SSE New Notification", data);
             showSystemNotification(data.title, data.message);
             if(!hasNotifications){
                 setHasNotifications(true);
@@ -81,9 +83,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
             userInfo.current.notifications.unshift({
                 title: data.title,
                 message: data.message,
-                timestamp: new Date().getTime().toString(),
+                timestamp: new Date().toLocaleString('en-GB', {
+                                      day: '2-digit',
+                                      month: 'short', 
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })
             });
-            userInfo.current.notifications.sort( (a, b) => Number(b.timestamp) - Number(a.timestamp));
             if(onNotifications) onNotifications();
         });
 
@@ -111,7 +118,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }),
     });
     async function showSystemNotification(title: string, body: string) {
-        console.log("Showing system notification:", title, body);
         
         await Notifications.scheduleNotificationAsync({
             content: {
@@ -125,7 +131,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     async function setupNotifications() {
         const { status } = await Notifications.requestPermissionsAsync();
         if(status !== "granted"){
-            console.log("Notification permission not granted");
             return false;
         }
         return true;
@@ -160,6 +165,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             notificationPermitted,
             hasNotifications,
             setHasNotifications,
+            jobs
         }}>
             {children}
         </UserContext.Provider>

@@ -65,6 +65,9 @@ public class UserController {
     public ResponseEntity<Claim> createClaim(@RequestBody Claim claim){
         System.out.println("Recieved Claim Create Request");
         ResponseEntity<Claim> res =  ResponseEntity.ok(userService.createClaim(claim));
+        // if(res.getStatusCode().is2xxSuccessful()){
+        //     notificationService.sendToUser( null, null)
+        // }
         return res;
     }
     @PostMapping("/set-account-claim")

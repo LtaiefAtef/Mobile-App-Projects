@@ -1174,3 +1174,43 @@
  Location : AuthService.java
  Error    : 500 Internal Server Error: "{"errorMessage":"Failed to send verify email"}"
 ------------------------------>
+
+==============================
+ Resend Verification Error
+ Date: 2026-04-29 11:53:18
+==============================
+ Location : AuthService.java
+ Error    : 500 Internal Server Error: "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Sign Up Error
+ Date: 2026-04-29 12:28:01
+==============================
+ Location : AuthService.java
+ Error    : 409 Conflict: "{"errorMessage":"User exists with same username"}"
+------------------------------>
+
+==============================
+ Resend Verification Error
+ Date: 2026-04-29 12:28:32
+==============================
+ Location : AuthService.java
+ Error    : 500 Internal Server Error: "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Resend Verification Error
+ Date: 2026-04-29 14:53:33
+==============================
+ Location : AuthService.java
+ Error    : 500 Internal Server Error: "{"errorMessage":"Failed to send verify email"}"
+------------------------------>
+
+==============================
+ Error Joining the session
+ Date: 2026-05-06 21:04:16
+==============================
+ Location : backend\src\main\java\com\auth\backend\service\SessionService.java
+ Error    : Session not found: 
+------------------------------>

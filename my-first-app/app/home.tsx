@@ -77,6 +77,7 @@ export default function Home() {
           activeOpacity={0.8}
           onPress={() => {
             setSessionData(defaultSession);
+            inSession.current = false;
             router.push("/(shared_accident_report)/session")
           }}
         >

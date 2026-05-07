@@ -1,7 +1,8 @@
 // context/AccidentReportContext.tsx
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useRef, RefObject } from "react";
 // imports for PDF generation and sharing
 import * as Print from 'expo-print';
+import { GenerationResponse } from "@/constants/appData";
 // --- Types ---
 export type CircumstancesVehicle = {
   parkedStationary: boolean;
@@ -96,8 +97,6 @@ function deepMerge<T>(base: T, patch: DeepPartial<T>): T {
   return result;
 }
   async function downloadReport(report: ReportData) {
-    console.log("Downloading Report");
-
     const renderSignature = (
       signed: boolean,
       signedAt?: string,
@@ -289,7 +288,7 @@ type AccidentReportContextType = {
   setUser1Progress: React.Dispatch<React.SetStateAction<number | null>>;
   user2Progress:number | null;
   setUser2Progress: React.Dispatch<React.SetStateAction<number | null>>;
-  update: (patch: DeepPartial<ReportData>) => void;
+  reportDataRef : RefObject<ReportData>
   downloadReport: (report: ReportData) => void;
   toggleCircumstance: (
     vehicle: "vehicleA" | "vehicleB",
@@ -303,7 +302,10 @@ const AccidentReportContext = createContext<AccidentReportContextType | null>(nu
 
 // --- Provider ---
 export function AccidentReportProvider({ children }: { children: ReactNode }) {
+  // --- Report Data Hook ---
   const [report, setReport] = useState<ReportData>(defaultReport);
+  // --- Report Data Ref Object --- 
+  const reportDataRef = useRef<ReportData>(defaultReport);
   // --- Current Driver ---
   const [selectedDriver, setSelectedDriver] = useState<"driverA" | "driverB">("driverA");
   // --- User Progress ---
@@ -311,10 +313,7 @@ export function AccidentReportProvider({ children }: { children: ReactNode }) {
   const [user2Progress,setUser2Progress] = useState<number | null>(null);
   // --- Switch Selected Driver function ---
   const switchDriver = () => setSelectedDriver(prev => (prev === "driverA" ? "driverB" : "driverA"));
-  // --- Update function with deep merge ---
-  const update = (patch: DeepPartial<ReportData>) =>
-    setReport(prev => deepMerge(prev, patch));
-
+  // --- Toggle Circumstance ---
   const toggleCircumstance = (
     vehicle: "vehicleA" | "vehicleB",
     key: keyof Omit<CircumstancesVehicle, "totalChecked">
@@ -331,11 +330,16 @@ export function AccidentReportProvider({ children }: { children: ReactNode }) {
       };
     });
 
-  const resetReport = () => setReport(defaultReport);
-
-  return (
-    <AccidentReportContext.Provider value={{ report, update, downloadReport, toggleCircumstance, resetReport, selectedDriver, switchDriver,
-      user1Progress, setUser1Progress, user2Progress, setUser2Progress, defaultReport }}>
+  const resetReport = () => {
+      setReport(defaultReport);
+      reportDataRef.current = defaultReport;
+      setSelectedDriver("driverA");
+      setUser1Progress(0);
+      setUser2Progress(0);
+  };
+    return (
+    <AccidentReportContext.Provider value={{ report, downloadReport, toggleCircumstance, resetReport, selectedDriver, switchDriver,
+      user1Progress, setUser1Progress, user2Progress, setUser2Progress, defaultReport, reportDataRef }}>
       {children}
     </AccidentReportContext.Provider>
   );

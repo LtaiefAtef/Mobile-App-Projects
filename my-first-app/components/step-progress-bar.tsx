@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default function StepProgressBar({ user1Step = null, user2Step = null, user1Label = null, user2Label = null }: Props) {
-    const steps = [1, 2, 3, 4, 5 , 6];
+    const steps = [1, 2, 3, 4, 5, 6, 7, 8];
     const insets = useSafeAreaInsets();
 
     return (
@@ -41,7 +41,7 @@ export default function StepProgressBar({ user1Step = null, user2Step = null, us
                                 bothHere && styles.circleBoth,
                             ]}>
                                 <Text style={[styles.stepNumber, (isU1 || isU2) && { color: "#fff" }]}>
-                                    {step == 6 ? "✔" : step}
+                                    {step == 8 ? "✔" : step}
                                 </Text>
                             </View>
 

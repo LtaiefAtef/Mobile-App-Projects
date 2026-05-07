@@ -95,15 +95,12 @@ export default function Login() {
       await saveToken(data.access_token, data.refresh_token, data.expires_in);
       saveUser(username);
       const res = await getData();
-      console.log(userInfo);
       if(!res){
-        console.log("NO user found ");
         return;
       }
       router.push("/home");
     }catch(e:any){
       setErrors({username:e?.message, password:e?.message});
-      console.log(e);
     }
   };
 

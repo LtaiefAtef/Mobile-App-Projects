@@ -40,61 +40,72 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
 
 export default function SuccessPage() {
   const router = useRouter();
-  const { report, downloadReport, update, setUser1Progress, setUser2Progress, defaultReport, switchDriver } = useAccidentReport();
+  const { reportDataRef, downloadReport, setUser1Progress, setUser2Progress, defaultReport, switchDriver, selectedDriver, resetReport } = useAccidentReport();
+  const { sessionData, inSession, sessionDataRef, resetSession } = useSharedAccidentReport();
   const [showReport, setShowReport] = useState(false);
   const [frame, setFrame] = useState(true);
   const [waitingForOtherParty, setWaitingForOtherParty] = useState(true);
-  const { sessionData, inSession, defaultSession, setSessionData, reportRef } = useSharedAccidentReport();
+  const [ report , setReport ] = useState(defaultReport);
   useEffect(() => {
     async function wait(){
     if (inSession.current && sessionData) {
       const isAuthor = await checkIfAuthor(sessionData.createdBy);
-
+      console.log("user1Progress:",sessionDataRef.current.sharedData.user1Progress === 8,"user2Progress",
+        sessionDataRef.current.sharedData.user2Progress)
       if (
-        sessionData.sharedData?.user1Progress === 6 &&
-        sessionData.sharedData?.user2Progress === 6
+        sessionDataRef.current.sharedData.user1Progress === 8 &&
+        sessionDataRef.current.sharedData.user2Progress === 8
       ) {
         setWaitingForOtherParty(false);
       }
-
-      const Finalreport = sessionData?.sharedData?.report;
-      if (!isAuthor) {
-        console.log("GUEST IS UPDATING HIS REPORT");
-        update({
-          accidentDate: Finalreport?.accidentDate ?? "",
-          accidentLocation: Finalreport?.accidentLocation ?? "",
-          injuries: { ...(Finalreport?.injuries ?? {}) },
-          otherVehiclesDamaged: { ...(Finalreport?.otherVehiclesDamaged ?? {}) },
-          witnesses: [...(Finalreport?.witnesses ?? [])],
-          driver: { driverA: Finalreport?.driver?.driverA ?? {} },
-          insuranceCompany: { vehicleA: Finalreport?.insuranceCompany?.vehicleA ?? {} },
-          visibiledamage: { vehicleA: Finalreport?.visibiledamage?.vehicleA ?? "" },
-          circumstances: { vehicleA: Finalreport?.circumstances?.vehicleA ?? {} },
-          signatures: { vehicleA: Finalreport?.signatures?.vehicleA ?? {} }
-        });
-      } else {
-        console.log("HOST IS UPDATING HIS REPORT");
-        update({
-          driver: { driverB: Finalreport?.driver?.driverB ?? {} },
-          insuranceCompany: { vehicleB: Finalreport?.insuranceCompany?.vehicleB ?? {} },
-          visibiledamage: { vehicleB: Finalreport?.visibiledamage?.vehicleB ?? "" },
-          circumstances: { vehicleB: Finalreport?.circumstances?.vehicleB ?? {} },
-          signatures: { vehicleB: Finalreport?.signatures?.vehicleB ?? {} },
-        });
+      // setWaitingForOtherParty(false);
+      if(!waitingForOtherParty){
+        if(isAuthor){console.log("host")}else{console.log("guest");}
+        const Finalreport = sessionDataRef.current.sharedData.reportDataRef?.current;
+        console.log("Sent Report => sessionDataRef.current.sharedData.reportDataref.current", JSON.stringify(Finalreport,null, 2));
+        console.log("Current Report => sessionDataRef.current.sharedData.reportDataref.current", JSON.stringify(reportDataRef.current,null, 2));
+        if (!isAuthor) {
+            console.log(JSON.stringify(reportDataRef.current, null , 2))
+            reportDataRef.current = { ...reportDataRef.current, 
+              accidentDate:Finalreport.accidentDate,
+              accidentLocation:Finalreport.accidentLocation,
+              injuries:Finalreport.injuries,
+              otherVehiclesDamaged:Finalreport.otherVehiclesDamaged,
+              witnesses:Finalreport.witnesses,
+              insuranceCompany: { ...reportDataRef.current.insuranceCompany, vehicleA: Finalreport.insuranceCompany.vehicleA },
+              driver: { ...reportDataRef.current.driver, driverA:Finalreport.driver.driverA },
+              visibiledamage:{ ...reportDataRef.current.visibiledamage, vehicleA:Finalreport.visibiledamage.vehicleA },
+              circumstances:{ ...reportDataRef.current.circumstances, vehicleA: Finalreport.circumstances.vehicleA },
+              sketchImageUrl:Finalreport.sketchImageUrl,
+              signatures:{ ...reportDataRef.current.signatures, vehicleA:Finalreport.signatures.vehicleA, },
+              accidentPerspective:{...reportDataRef.current.accidentPerspective, driverA: Finalreport.accidentPerspective.driverA}
+            }
+            console.log(JSON.stringify(reportDataRef.current, null , 2))
+        }else{
+            reportDataRef.current = { ...reportDataRef.current, 
+              insuranceCompany: { ...reportDataRef.current.insuranceCompany, vehicleB: Finalreport.insuranceCompany.vehicleB },
+              driver: { ...reportDataRef.current.driver, driverB:Finalreport.driver.driverB },
+              visibiledamage:{ ...reportDataRef.current.visibiledamage, vehicleB:Finalreport.visibiledamage.vehicleB },
+              circumstances:{ ...reportDataRef.current.circumstances, vehicleB: Finalreport.circumstances.vehicleB },
+              signatures:{ ...reportDataRef.current.signatures, vehicleB:Finalreport.signatures.vehicleB, },
+              accidentPerspective:{...reportDataRef.current.accidentPerspective, driverB: Finalreport.accidentPerspective.driverB}
+            }
+        }
       }
+      
       setFrame(false);
-      reportRef.current = report;
     }else{
       setWaitingForOtherParty(false);
       setFrame(true);
       setShowReport(true);
-      await AsyncStorage.setItem('@accident_report', JSON.stringify(report));
-      const res = await createClaim(report as ReportBody);
+      await AsyncStorage.setItem('@accident_report', JSON.stringify(reportDataRef.current));
+      const res = await createClaim(reportDataRef.current as ReportBody);
     }
+    setReport(reportDataRef.current);
   }
   wait()
-  }, [sessionData]);
-useEffect(()=>{},[report]);
+  }, [sessionData, waitingForOtherParty]);
+
   return (
     <ScrollView
       style={styles.screen}
@@ -253,13 +264,13 @@ useEffect(()=>{},[report]);
       { frame && <TouchableOpacity
         style={styles.homeBtn}
         onPress={async() => {
-          setUser1Progress(0);
-          setUser2Progress(0);
-          await AsyncStorage.setItem("@report",JSON.stringify(report));
-          update(defaultReport)
-          inSession.current = false;
-          switchDriver();
-          router.replace('/')
+            await AsyncStorage.setItem("@report", JSON.stringify(defaultReport));
+            router.dismissAll();
+            router.replace('/home');
+            setTimeout(() => {
+                resetReport();
+                resetSession();
+            }, 100);
         }}
         activeOpacity={0.8}
       >
@@ -270,7 +281,7 @@ useEffect(()=>{},[report]);
         activeOpacity={0.8}
         onPress={async()=> {
           const user = await getUser();
-          if(sessionData.createdBy === user) await createClaim(reportRef.current as ReportBody);
+          if(sessionData.createdBy === user) await createClaim(reportDataRef.current as ReportBody);
           setFrame(true);
         }}
         disabled = { !frame && waitingForOtherParty }>

@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext, useRef, useState } from "react";
+import { createContext, ReactNode, RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import  Constants  from "expo-constants";
 import { getToken } from "@/services/api";
 import { Client, IMessage } from "@stomp/stompjs";
@@ -28,11 +28,6 @@ const api = async(path: string, opts: RequestInit = {}) : Promise<SessionData | 
     return res.status === 204 ? null : res.json();
 }
 
-// --- Context ---
-const SharedAccidentReportContext = createContext<SharedAccidentReportContextType | null>(null);
-
-//  --- Provider ---
-export function SharedAccidentReportProvider({ children }: { children: ReactNode}){
     // -- Default Session value ---
     const defaultSession :SessionData = {
         code: "",
@@ -46,7 +41,7 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
             sender: "",
             triggerHostAction: false,
             triggerGuestAction: false,
-            report: {} as ReportData
+            reportDataRef: {} as RefObject<ReportData>
         },
         sender:"",
         sharedReport: null,
@@ -56,10 +51,16 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
         error: null,
         action: ""
     }
+// --- Context ---
+const SharedAccidentReportContext = createContext<SharedAccidentReportContextType | null>(null);
+
+//  --- Provider ---
+export function SharedAccidentReportProvider({ children }: { children: ReactNode}){
+
     //  --- Session Data ---
     const [sessionData, setSessionData] = useState<SessionData>(defaultSession);
-    // --- report Ref ---
-    const reportRef = useRef(null);
+    // --- SessionDataRef ---
+    const sessionDataRef = useRef<SessionData>(defaultSession);
     // --- Session Data is present ---
     const inSession = useRef(false);
     // --- Loader ---
@@ -75,20 +76,21 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
         setLoadingSession(!loadingSession)
     }
     // --- Create Session Function ---
-    const createSession = useCallback(async(user:string)=>{
+    const createSession = async(user:string)=>{
         inSession.current=true;
         setLoadingSession(true)
         const s : SessionData | null  = await api("create",{
             method:"POST",
             body: JSON.stringify({ username:user })
         })
-        setSessionData((prev) => ({...prev, ...s}));
         if(!s?.code){
             return null;
         }
+        sessionDataRef.current = s;
+        setSessionData((prev) => ({...prev, ...s}));
         connectWS(s.code);
         return s;
-    },[])
+    }
     // --- Join Session Function ---
     const joinSession = async(code:string, user:string)=>{
         inSession.current=true;
@@ -99,14 +101,14 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
         if(!s?.code){
             return null;
         }
-        connectWS(s.code);
+        sessionDataRef.current = s;
         setSessionData((prev)=>({...prev, ...s}))
+        connectWS(s.code);
         return s;
     }
     // --- Connect To WebSocket Function ---
     const connectWS = useCallback( async(code: string) => {
         if(!code){
-            console.log("No Session Code");
             return;
         }
         const client = new Client({
@@ -142,27 +144,45 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
                     if(msg.type === "DATA_UPDATE"){
                         const payload = JSON.parse(msg.payload);
                         const user = await getUser();
-                        const isAuthor = await checkIfAuthor(user ?? "") ;
+                        const isAuthor = await checkIfAuthor(sessionDataRef.current?.createdBy ?? "");
                         switch(payload.action){
                             case "start session":
-                                if(payload.sender != user){
-                                    router.push("/(accident_report)/step-2");
-                                    setSessionData((prev) => ({...prev, sharedData: { ...payload } })) 
-                                    return;
-                                }
+                                console.log("start session");
                                 setSessionData((prev) => ({...prev, sharedData: { ...payload } })) 
-                                router.push("/(accident_report)/step-1");
-                                return;
-                            case "progress":
-                                if(payload.sender != user && isAuthor){
-                                    setSessionData((prev)=> ({...prev, sharedData: { ...prev.sharedData, sender:payload.sender, user2Progress:payload.user2Progress } }))
-                                    return;
+                                sessionDataRef.current = {...sessionDataRef.current , sharedData : payload }
+                                if(isAuthor){
+                                    return router.push("/(accident_report)/step-1");
+                                }else{
+                                    return router.push("/(accident_report)/step-3");
                                 }
-                                setSessionData((prev)=> ({...prev, sharedData: { ...prev.sharedData, sender:payload.sender, user1Progress:payload.user1Progress } }))
-                                return;
+                            case "progress":
+                                console.log("progress");
+                                setTimeout(() => {
+                                    if(payload.sender != user && isAuthor){
+                                        if(sessionData.sharedData.user2Progress < payload.user2Progress ){
+                                            setSessionData((prev)=> ({...prev, sharedData: { ...prev.sharedData, sender:payload.sender, user2Progress:payload.user2Progress } }))
+                                        }
+                                        return;
+                                    }
+                                    if(sessionData.sharedData.user1Progress < payload.user1Progress ){
+                                        setSessionData((prev)=> ({...prev, sharedData: { ...prev.sharedData, sender:payload.sender, user1Progress:payload.user1Progress } }))
+                                    }
+                                    return;
+                                }, 1000);
                             case "final":
+                                console.log("final");
                                 if(payload.sender != user){
-                                    setSessionData((prev) => ({...prev, sharedData: { ...payload } }))
+                                    if(isAuthor){
+                                        sessionDataRef.current = { ...sessionDataRef.current , sharedData : {...sessionDataRef.current.sharedData, reportDataRef: payload.reportDataRef,
+                                            user2Progress:payload.user2Progress
+                                         } }
+                                        setSessionData((prev)=> ({...prev, sharedData: { ...prev.sharedData, sender:payload.sender, user2Progress:payload.user2Progress } }))
+                                        return;
+                                    }
+                                    sessionDataRef.current = { ...sessionDataRef.current , sharedData : {...sessionDataRef.current.sharedData, reportDataRef: payload.reportDataRef,
+                                        user1Progress:payload.user1Progress
+                                        } }
+                                    setSessionData((prev)=> ({...prev, sharedData: { ...prev.sharedData, sender:payload.sender, user1Progress:payload.user1Progress } }))
                                     return;
                                 }
                             default:
@@ -206,9 +226,37 @@ export function SharedAccidentReportProvider({ children }: { children: ReactNode
             body: JSON.stringify(msg)
         })
     }
+    useEffect(() => {
+        return () => {
+            if (clientRef.current) {
+            clientRef.current.deactivate();
+            clientRef.current = null;
+            }
+        };
+        }, []);
+        const resetSession = () => {
+            inSession.current = false;
+            if (clientRef.current) {
+                clientRef.current.onDisconnect = () => {};
+                clientRef.current.onStompError = () => {};
+                clientRef.current.onWebSocketError = () => {};
+                clientRef.current.onConnect = () => {};
+                clientRef.current.reconnectDelay = 0;
+                clientRef.current.deactivate();
+                clientRef.current = null;
+            }
+            sessionDataRef.current = defaultSession;
+            setLoadingSession(false);
+            setSessionData(defaultSession);
+        };
     return (
-        <SharedAccidentReportContext.Provider value={{ reportRef,sessionData:sessionData, updateSession,
-         connectWS, loadingSession, toggleLoadingSession, createSession, joinSession, updateBackendSession, sendMessage, setSessionData, inSession, defaultSession }}>
+        <SharedAccidentReportContext.Provider value={{ 
+            sessionData:sessionData, updateSession,
+            connectWS, loadingSession, toggleLoadingSession,
+            createSession, joinSession, updateBackendSession,
+            sendMessage, setSessionData, inSession, defaultSession,
+            sessionDataRef,resetSession
+         }}>
             {children}
         </SharedAccidentReportContext.Provider>
     )
